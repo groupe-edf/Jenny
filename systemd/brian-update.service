@@ -1,0 +1,8 @@
+[Unit]
+Description=Package repository manager, periodic mirrors update
+
+[Service]
+Type=oneshot
+WorkingDirectory=/srv/brian
+ExecStart=/usr/local/share/brian/brian.py update
+User=_brian

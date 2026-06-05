@@ -1,0 +1,46 @@
+{% extends "base.html" %}{# -*- mode: web -*- #}
+
+{% block title %}Migration de paquets de {{ fromenv }} à {{ toenv }}{% endblock %}
+
+{% block content %}
+<div class="m-2">
+
+  <div>Migration des paquets depuis <b>{{ fromenv }}{% if fromsnap %}[{{fromsnap}}]{% endif %}</b> vers <b>{{ toenv }}</b> :
+    <ul class="list-unstyled">
+      {% for d in diffs %}
+      {% for p in diffs[d] %}
+      {% for v in diffs[d][p] %}
+      <li>{% if v[1] == 'added' %}<span class="btn btn-sm btn-success">+</span>{%else%}<span class="btn btn-sm btn-danger">-</span>{%endif%} {{d}}/{{p}}/{{v[0].version}}</li>
+      {% endfor %}
+      {% endfor %}
+      {% endfor %}
+    </ul>
+    {{ migratedpackages }} paquets sources migrés ({{ addedversions }} versions ajoutées, {{ removedversions }} supprimées)
+  </div>
+  <div>
+    <form method="POST" action="/migrate-packages">
+      <input type="hidden" name="fromenv" value="{{fromenv}}">
+      <input type="hidden" name="fromsnap" value="{{fromsnap}}">
+      <input type="hidden" name="toenv" value="{{toenv}}">
+      <input type="hidden" name="leftenv" value="{{leftenv}}">
+      <input type="hidden" name="rightenv" value="{{rightenv}}">
+      <input type="hidden" name="leftsnap" value="{{leftsnap}}">
+      <input type="hidden" name="rightsnap" value="{{rightsnap}}">
+      {% for d in dists %}
+      <input type="hidden" name="migratedist/{{d}}" value="1">
+      {% endfor %}
+      {% if rightenv == toenv %}
+      <input type="hidden" name="migrate-right" value="1">
+      {% else %}
+      <input type="hidden" name="migrate-left" value="1">
+      {% endif %}
+      {% for dist in srcpkgsperdist %}
+      {% for p in srcpkgsperdist[dist] %}
+      <input type="hidden" name="migratesrcpkg/{{dist}}/{{p}}" value="1"><br/>
+      {% endfor %}
+      {% endfor %}
+      <input type="submit" class="btn btn-primary" value="Confirmer">
+    </form>      
+  </div>
+</div>    
+{% endblock %}

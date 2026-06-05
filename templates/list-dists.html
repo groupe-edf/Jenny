@@ -1,0 +1,46 @@
+{% extends "base.html" %}{# -*- mode: web -*- #}
+{% block title %}Distributions{% endblock %}
+{% block content %}
+{% from "distform.include" import distform, distformbuttons %}
+{{ distform() }}
+<div class="m-2">
+  <table class="table table-striped">
+    <tr>
+      <th>Distribution</th>
+      <th>Sélection</th>
+    </tr>
+
+    {% for d in g.distsperbasename if not g.session.curstage or g.session.curstage in g.distsperbasename[d].meta.stages %}
+    <tr>
+      <td>{{d}} {% for s in g.distsperbasename[d]['meta'].stages %}
+	<span class="text-small" style="background-color: {{ g.stages[s].color }}">{{ s }}</span>
+	{% endfor %}
+      </td>
+      <td>
+	<div class="form-check m-2 form-switch" style="display: inline">
+	  <input class="form-check-input checkgroup" type="checkbox" class="m-2" name="comparedist-{{d}}" id="comparedist-{{d}}"{% for dd in g.session.dists %}{% if d == dd %} checked{% endif %}{% endfor %} form="form-comparedists" />
+	</div>
+      </td>
+    </tr>
+    {% endfor %}
+
+    <tr>
+      <th colspan="2" class="text-center">
+	<div class="form-check form-check-inline form-switch">
+	  <label class="form-check-label" for="input-select-all">Tout sélectionner</label>
+	  <input class="form-check-input" type="checkbox" id="input-select-all" class="m-2" />
+	</div>
+      </th>
+    </tr>
+
+    <tr>
+      <th>Rechercher les paquets…<br /><small>Pour une migration, utiliser les noms des paquets source. Plusieurs paquets possibles, séparés par une virgule.</small></th>
+      <td>
+	<input type="text" class="form-control" name="packages" value="{{g.session.packages}}" form="form-comparedists" />
+      </td>
+    </tr>
+    {{ distformbuttons(true,g=g) }}
+  </table>
+</div>
+{% endblock %}
+

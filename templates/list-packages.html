@@ -1,0 +1,111 @@
+{% extends "base.html" %}{# -*- mode: web -*- #}
+
+{% block title %}Paquets de {% for d in listperdist %}{{d}}{% if not loop.last %}, {% endif %}{% endfor %} en environnement {{ environment }}{% if snap %}[{{ snap }}]{% endif %}{% endblock %}
+
+{% block content %}
+{% from "distform.include" import distform, distformbuttons %}
+{{ distform() }}
+<div class="m-2">
+  <form method="POST" action="/dist-action" id="form-comparedists"></form>
+
+  <form method="POST" action="/post-list-packages">
+    <input type="hidden" name="environment" value="{{environment}}">
+
+    <button class="btn btn-primary collapse show collapse-source" type="button" data-bs-toggle="collapse" data-bs-target=".collapse-source" aria-expanded="false">Masquer sources</button>
+    <button class="btn btn-primary collapse collapse-source" type="button" data-bs-toggle="collapse" data-bs-target=".collapse-source" aria-expanded="false">Afficher sources</button>
+    <button class="btn btn-primary collapse show collapse-binaries" type="button" data-bs-toggle="collapse" data-bs-target=".collapse-binaries" aria-expanded="false">Masquer binaires</button>
+    <button class="btn btn-primary collapse collapse-binaries" type="button" data-bs-toggle="collapse" data-bs-target=".collapse-binaries" aria-expanded="false">Afficher binaires</button>
+
+    <table class="table table-striped">
+      {% for distribution,spacks in listperdist.items() %}
+      <input type="hidden" name="comparedist-{{distribution}}" id="comparedist-{{distribution}}" value="1" form="form-comparedists">
+      <input type="hidden" name="removedist/{{distribution}}" value="1">
+      <tr>
+	<th colspan="2" class="text-center"><span class="h3">{{ distribution }}</span></th>
+      </tr>
+      {% for sourcepackage,packs in spacks.items() %}
+      <tr>
+	<th colspan="2" class="text-center">
+	  {% if g.distributions[distribution+'--'+environment].ismirror or not g.can_write or snap %}
+	  {{ sourcepackage }}
+	  {% else %}
+	  <div class="form-check form-check-inline form-switch">
+	    <label class="form-check-label" for="input-{{distribution}}--{{sourcepackage}}">{{ sourcepackage }}</label>
+	    <input class="form-check-input checkgroup m-2" type="checkbox" id="input-{{distribution}}--{{sourcepackage}}" name="srcpkg/{{distribution}}/{{sourcepackage}}" />
+	  </div>
+	  {% endif %}
+	</th>
+      </tr>
+      {% for p in packs if p.architecture == 'source' %}
+      <tr class="collapse collapse-source show table-active">
+	<td>{{ p.name }}/{{ p.architecture }}/{{ p.component }}</td>
+	<td>{{ p.version }}</td>
+      </tr>
+      {% endfor %}
+      {% for p in packs if p.architecture != 'source' %}
+      <tr class="collapse collapse-binaries show">
+	<td>{{ p.name }}/{{ p.architecture }}/{{ p.component }}</td>
+	<td>{{ p.version }}</td>
+      </tr>
+      {% endfor %}
+      {% endfor %}
+      {% endfor %}
+
+      {% if g.can_write %}
+      <tr>
+	<th colspan="2" class="text-center">
+	  <div class="form-check form-check-inline form-switch">
+	    <label class="form-check-label" for="input-select-all">Tout sélectionner</label>
+	    <input class="form-check-input m-2" type="checkbox" id="input-select-all" />
+	  </div>
+	</th>
+      </tr>
+      <tr>
+	<th class="text-center">Supprimer les paquets sélectionnés</th>
+	<td>
+	  <input type="submit" class="btn btn-primary disablable" name="remove" value="Supprimer">
+	</td>
+      </tr>
+      {% endif %}
+      <tr>
+	<th>Rechercher les paquets…<br /><small>Pour une migration, utiliser les noms des paquets source. Plusieurs paquets possibles, séparés par une virgule.</small></th>
+	<td>
+	  <input type="text" class="form-control" name="packages" value="{{g.session.packages}}" form="form-comparedists" />
+	</td>
+      </tr>
+      {{ distformbuttons(false,g=g) }}
+    </table>
+
+
+  <p>
+    <button class="btn btn-outline-warning btn-sm" type="button" data-toggle="collapse" data-target="#collapseexpert" aria-expanded="false" aria-controls="collapseexpert">
+      Migration experte
+    </button>
+  </p>
+  <div class="collapse show" id="collapseexpert">
+    <div class="card card-body">
+      <div class="form-group">
+	<label for="targetrepo">Dépôt cible</label>
+	<select class="form-control" id="targetrepo" name="targetrepo">
+	  {% for d,dd in g.distributions.items() %}
+	  {% if dd.ismirror or not g.can_write %}
+	  {% else %}
+	  {% for c in dd['components'] %}
+	  <option value="{{ dd['basename'] }}--{{ dd['env'] }}--{{ c }}">{{ dd['basename'] }}/{{ c }}/{{ dd['env'] }}</option>
+	  {% endfor %}
+	  {% endif %}
+	  {% endfor %}
+	</select>
+      </div>
+      <div class="form-check">
+	<input type="checkbox" class="form-check-input" id="expert-sure" name="expert-sure">
+	<label class="form-check-label" for="expert-sure">Je sais ce que je fais</label>
+      </div>
+      <button type="submit" class="btn btn-warning" name="expert-migrate">Migrer</button>
+    </div>
+  </div>
+  
+  </form>
+
+</div>
+{% endblock %}

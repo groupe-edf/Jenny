@@ -1,0 +1,44 @@
+{% extends "base.html" %}{# -*- mode: web -*- #}
+{% block title %}Snapshots{% endblock %}
+{% block content %}
+<div class="m-2">
+  <table class="table table-striped">
+
+    {% for env,snapshots in g.snapshots.items() %}
+    <tr>
+      <th colspan="3">Environnement {{ env }}</th>
+    </tr>
+    <!-- 
+    <tr>
+      <th>Nom</th>
+      <th>Date</th>
+    </tr>
+    -->
+    {% for name,tstamp in snapshots.items() %}
+    <tr>
+      <td>{{ name }}</td>
+      <td>{{ tstamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+      <td>
+	<form method="POST" action="/delete-snapshot">
+	  <input type="hidden" name="env" value="{{env}}" />
+	  <input type="hidden" name="snapname" value="{{name}}" />
+	  <input type="submit" class="btn btn-sm btn-outline-primary" value="Supprimer" />
+      </form>
+      </td>
+    </tr>
+    {% endfor %}
+    {% endfor %}
+  </table>
+  {% for e in g.environments %}
+  <form method="POST" action="/create-snapshot">
+    <input type="hidden" name="env" value="{{e}}" />
+    <input type="submit" class="btn btn-sm btn-outline-primary" name="env" value="Créer snapshot pour {{e}}" />
+    <input type="text" name="snapname" />
+  </form>
+  {% endfor %}
+
+  <div>
+    <small>Les snapshots sont des images d'un environnement complet, et portent sur l'ensemble des distributions de cet environnement.</small>
+  </div>
+</div>
+{% endblock %}

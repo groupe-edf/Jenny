@@ -1,0 +1,33 @@
+{% extends "base.html" %}{# -*- mode: web -*- #}
+
+{% block title %}Suppression de paquets en {{ environment }}{% endblock %}
+
+{% block content %}
+<div class="m-2">
+
+  <div>Suppression de paquets de l'environnement <b>{{ environment }}</b> :
+    <ul class="list-unstyled">
+      {% for d in removed %}
+      {% for p in removed[d] %}
+      {% for v in removed[d][p] %}
+      <li><span class="btn btn-sm btn-danger">-</span> {{d}}/{{p}}/{{v.version}}</li>
+      {% endfor %}
+      {% endfor %}
+      {% endfor %}
+    </ul>
+    {{ removedpackages }} paquets sources supprimés ({{ removedversions }} versions).
+  </div>
+  <div>
+    <form method="POST" action="/remove-packages">
+      <input type="hidden" name="environment" value="{{environment}}">
+      {% for d in dists %}
+      <input type="hidden" name="removedist/{{d}}" value="1">
+      {% endfor %}
+      {% for p in srcpackages %}
+      <input type="hidden" name="srcpkg/{{p[0]}}/{{p[1]}}" value="1">
+      {% endfor %}
+      <input type="submit" class="btn btn-danger" value="Confirmer">
+    </form>      
+  </div>
+</div>    
+{% endblock %}

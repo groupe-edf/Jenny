@@ -1,0 +1,55 @@
+{% macro distform() %}
+<form method="post" action="/dist-action" id="form-comparedists" name="form-comparedists"></form>
+{% endmacro %}
+
+{% macro distformbuttons(disablable) %}
+<tr>
+  <th>Paquets présents en…</th>
+  <td>
+  <select name="env" form="form-comparedists" class="form-select {% if disablable %} disablable{% endif %}">
+  {% for e in g.environments %}
+  {{e}}
+  <option value="{{e}}"{% if e==kwargs.g.session.curenv and not kwargs.g.session.cursnap %} selected{% endif %}>{{e}}</option>
+  {% endfor %}
+  {% for env,snapshots in g.snapshots.items() %}
+  <optgroup label="Snapshots de {{env}}">
+  {% for name,tstamp in snapshots.items() %}
+  <option value="{{env}}={{name}}"{% if env==kwargs.g.session.curenv and name==kwargs.g.session.cursnap %} selected{% endif %}>{{env}}[{{name}}]</option>
+  {% endfor %}
+  </optgroup>
+  {% endfor %}
+  </select>
+  <input type="submit" class="btn btn-sm btn-outline-primary{% if disablable %} disablable{% endif %}" name="list" value="Lister" form="form-comparedists">
+  </td>
+</tr>
+<tr>
+  <th>Comparer…</th>
+  <td>
+  <select name="leftenv" form="form-comparedists" class="form-select {% if disablable %} disablable{% endif %}">
+  {% for e in g.environments %}
+  <option value="{{e}}"{% if e==kwargs.g.session.leftenv and not kwargs.g.session.leftsnap %} selected{% endif %}>{{e}}</option>
+  {% endfor %}
+  {% for env,snapshots in g.snapshots.items() %}
+  <optgroup label="Snapshots de {{env}}">
+  {% for name,tstamp in snapshots.items() %}
+  <option value="{{env}}={{name}}"{% if env==kwargs.g.session.leftenv and name==kwargs.g.session.leftsnap %} selected{% endif %}>{{env}}[{{name}}]</option>
+  {% endfor %}
+  </optgroup>
+  {% endfor %}
+  </select>
+  <select name="rightenv" form="form-comparedists" class="form-select {% if disablable %} disablable{% endif %}">
+  {% for e in g.environments %}
+  <option value="{{e}}"{% if e==kwargs.g.session.rightenv and not kwargs.g.session.rightsnap %} selected{% endif %}>{{e}}</option>
+  {% endfor %}
+  {% for env,snapshots in g.snapshots.items() %}
+  <optgroup label="Snapshots de {{env}}">
+  {% for name,tstamp in snapshots.items() %}
+  <option value="{{env}}={{name}}"{% if env==kwargs.g.session.rightenv and name==kwargs.g.session.rightsnap %} selected{% endif %}>{{env}}[{{name}}]</option>
+  {% endfor %}
+  </optgroup>
+  {% endfor %}
+  </select>
+  <input type="submit" class="btn btn-sm btn-outline-primary{% if disablable %} disablable{% endif %}" name="compare" value="Comparer" form="form-comparedists">
+  </td>
+</tr>
+{% endmacro %}

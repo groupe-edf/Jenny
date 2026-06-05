@@ -1,0 +1,24 @@
+{% extends "base.html" %}{# -*- mode: web -*- #}
+
+{% block title %}Paquets supprimés de {{ distribution }} en environnement {{ environment }}{% endblock %}
+
+{% block content %}
+<div class="m-2">
+
+  <div>Paquets supprimés :
+    <ul class="list-unstyled">
+      {% for d in removed %}
+      {% for p in removed[d] %}
+      {% for v in removed[d][p] %}
+      <li><span class="btn btn-sm btn-danger">-</span> {{d}}/{{p}}/{{v.version}}</li>
+      {% endfor %}
+      {% endfor %}
+      {% endfor %}
+    </ul>
+    {{ removedpackages }} paquets sources supprimés ({{ removedversions }} versions).
+  </div>
+  <div>
+    <a href="{{ redir }}">Retour à la liste des paquets</a>
+  </div>
+</div>    
+{% endblock %}

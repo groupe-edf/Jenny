@@ -1,0 +1,9 @@
+[Unit]
+Description=Package repository manager, periodic mirrors update
+
+[Timer]
+OnCalendar=*-*-* 0:05
+Persistent=true
+
+[Install]
+WantedBy=timers.target

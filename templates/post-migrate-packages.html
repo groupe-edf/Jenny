@@ -1,0 +1,24 @@
+{% extends "base.html" %}{# -*- mode: web -*- #}
+
+{% block title %}Paquets migrés de {{ fromenvsnap }} vers {{ toenv }}{% endblock %}
+
+{% block content %}
+<div class="m-2">
+
+  <div>Paquets migrés :
+    <ul class="list-unstyled">
+      {% for d in diffs %}
+      {% for p in diffs[d] %}
+      {% for v in diffs[d][p] %}
+      <li>{% if v[1] == 'added' %}<span class="btn btn-sm btn-success">+</span>{%else%}<span class="btn btn-sm btn-danger">-</span>{%endif%} {{d}}/{{p}}/{{v[0].version}}</li>
+      {% endfor %}
+      {% endfor %}
+      {% endfor %}
+    </ul>
+    {{ migratedpackages }} paquets sources migrés ({{ addedversions }} versions ajoutées, {{ removedversions }} supprimées)
+  </div>
+  <div>
+    <a href="{{ redir }}">Retour à la comparaison</a>
+  </div>
+</div>    
+{% endblock %}

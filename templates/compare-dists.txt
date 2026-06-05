@@ -1,0 +1,4 @@
+{% for d,diffdata in diffdatas.items() %}* {{ leftenv }}{% if leftsnap %}[{{leftsnap}}]{% endif %} / {{d}} / {{ rightenv }}{% if rightsnap %}[{{rightsnap}}]{% endif %}
+{% for sourcepackage,packs in diffdata.diffs.items() %}  * {{ sourcepackage }}
+{% for binpkg,versions in packs.items() %}    * {{ versions.name }}/{{ versions.architecture }}/{{ versions.component }} : {% for v in versions.left %}{{ v }} {% endfor %}/ {% for v in versions.right %}{{ v }} {% endfor %}
+{% endfor %}{% endfor %}{% endfor -%}

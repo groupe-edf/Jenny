@@ -1,0 +1,30 @@
+{% extends "base.html" %}{# -*- mode: web -*- #}
+{% block title %}Tâches de publication{% endblock %}
+{% block extrahead %}<meta http-equiv="refresh" content="5">{% endblock %}
+{% block content %}
+<div>
+  <a class="btn btn-danger" href="/clear-tasks">Tout supprimer</a>
+</div>
+<table class="table table-striped">
+  <tr>
+    <th>ID</th>
+    <th>Environnement</th>
+    <th>Distribution</th>
+    <th>État</th>
+    <th>Actions</th>
+  </tr>    
+  {% for t in tasks %}
+  <tr>
+    <td>{{ t['ID'] }}</td>
+    <td>{{ t['publish'] }}</td>
+    <td>{{ t['dist'] }}</td>
+    <td>{{ t['statetext'] }}</td>
+    <td>
+      <a class="btn btn-sm btn-primary" href="/task-details/{{t['ID']}}">Détails</a>
+      <a class="btn btn-sm btn-danger" href="/remove-task/{{t['ID']}}">Supprimer</a>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}
+

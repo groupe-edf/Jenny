@@ -1,0 +1,14 @@
+[Unit]
+Description=Package repository manager, incoming package processor
+After=network.target
+
+[Service]
+WorkingDirectory=/srv/brian
+ExecStart=/usr/local/share/brian/brian.py incoming-daemon
+User=_brian
+KillMode=mixed
+Restart=on-failure
+TimeoutStopSec=10s
+
+[Install]
+WantedBy=multi-user.target

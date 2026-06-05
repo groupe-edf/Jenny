@@ -1,0 +1,343 @@
+# Example config file
+brian:
+  basedir: ~/
+  logdir: ~/logs/
+  aptly_version: 1.6.2
+  aptly:
+    basedir: ~/aptly
+environments:
+  - dev
+  - iq
+  - prod
+stages:
+  S12:
+    color: "#CCFFCC"
+  S11:
+    color: "#FFFFCC"
+  S10:
+    color: "#FFCCCC"
+dists:
+  _default:
+    proxy: http://proxy.example.com:3128
+    noproxy: localhost=,127.0.0.1,.example.com
+    signwith:
+  bookworm:
+    origin: Debian
+    label: Debian
+    architectures:
+      - source
+      - amd64
+    components:
+      - main
+      - contrib
+      - non-free
+      - non-free-firmware
+    udebs: true
+    upstream: https://ftp.debian.org/debian
+    suite: bookworm
+    verifyrelease: 0E98404D386FA1D9|648ACFD622F3D138
+    description: Debian Bookworm
+    stages:
+      - S12
+  bookworm-backports:
+    origin: Debian
+    label: Debian
+    architectures:
+      - source
+      - amd64
+    components:
+      - main
+      - contrib
+      - non-free
+      - non-free-firmware
+    upstream: https://ftp.debian.org/debian
+    suite: bookworm-backports
+    verifyrelease: 0E98404D386FA1D9|648ACFD622F3D138
+    description: Debian Bookworm backports
+    stages:
+      - S12
+  bookworm-security:
+    origin: Debian
+    label: Debian
+    architectures:
+      - source
+      - amd64
+    components:
+      - main
+      - contrib
+      - non-free
+      - non-free-firmware
+    upstream: https://security.debian.org/debian-security
+    suite: bookworm-security/updates
+    verifyrelease: 54404762BBB6E853|112695A0E562B32A
+    description: Debian Bookworm/updates
+    filterformula: ( $Source (!= git-annex) , $Source (!= enigmail) , $Source (!= thunderbird) )
+    stages:
+      - S12
+  bookworm-updates:
+    origin: Debian
+    label: Debian
+    architectures:
+      - source
+      - amd64
+    components:
+      - main
+      - contrib
+      - non-free
+      - non-free-firmware
+    upstream: https://ftp.debian.org/debian
+    suite: bookworm-updates
+    verifyrelease: 0E98404D386FA1D9|648ACFD622F3D138
+    description: Debian Bookworm-updates
+    stages:
+      - S12
+  bullseye:
+    origin: Debian
+    label: Debian
+    architectures:
+      - source
+      - amd64
+    components:
+      - main
+      - contrib
+      - non-free
+    udebs: true
+    upstream: https://ftp.debian.org/debian
+    suite: bullseye
+    verifyrelease: 0E98404D386FA1D9|648ACFD622F3D138
+    description: Debian Bullseye
+    stages:
+      - S11
+  bullseye-backports:
+    origin: Debian
+    label: Debian
+    architectures:
+      - source
+      - amd64
+    components:
+      - main
+      - contrib
+      - non-free
+    upstream: https://ftp.debian.org/debian
+    suite: bullseye-backports
+    verifyrelease: 0E98404D386FA1D9|648ACFD622F3D138
+    description: Debian Bullseye backports
+    stages:
+      - S11
+  bullseye-security:
+    origin: Debian
+    label: Debian
+    architectures:
+      - source
+      - amd64
+    components:
+      - main
+      - contrib
+      - non-free
+    upstream: https://security.debian.org/debian-security
+    suite: bullseye-security/updates
+    verifyrelease: 54404762BBB6E853|112695A0E562B32A
+    description: Debian Bullseye/updates
+    filterformula: ( $Source (!= git-annex) , $Source (!= enigmail) , $Source (!= thunderbird) )
+    stages:
+      - S11
+  bullseye-updates:
+    origin: Debian
+    label: Debian
+    architectures:
+      - source
+      - amd64
+    components:
+      - main
+      - contrib
+      - non-free
+    upstream: https://ftp.debian.org/debian
+    suite: bullseye-updates
+    verifyrelease: 0E98404D386FA1D9|648ACFD622F3D138
+    description: Debian Bullseye-updates
+    stages:
+      - S11
+  buster:
+    origin: Debian
+    label: Debian
+    architectures:
+      - source
+      - amd64
+    components:
+      - main
+      - contrib
+      - non-free
+    udebs: true
+    upstream: https://ftp.debian.org/debian
+    suite: buster
+    verifyrelease: 0E98404D386FA1D9|648ACFD622F3D138
+    description: Debian Buster
+    stages:
+      - S10
+  buster-backports:
+    disabled: True # No longer available
+    origin: Debian
+    label: Debian
+    architectures:
+      - source
+      - amd64
+    components:
+      - main
+      - contrib
+      - non-free
+    upstream: https://ftp.debian.org/debian
+    suite: buster-backports
+    verifyrelease: 0E98404D386FA1D9|648ACFD622F3D138
+    description: Debian Buster backports
+    stages:
+      - S10
+  buster-security:
+    origin: Debian
+    label: Debian
+    architectures:
+      - source
+      - amd64
+    components:
+      - main
+      - contrib
+      - non-free
+    upstream: https://security.debian.org/debian-security
+    suite: buster/updates
+    verifyrelease: 54404762BBB6E853|112695A0E562B32A
+    description: Debian Buster/updates
+    filterformula: ( $Source (!= git-annex) , $Source (!= enigmail) , $Source (!= thunderbird) )
+    stages:
+      - S10
+  buster-updates:
+    origin: Debian
+    label: Debian
+    architectures:
+      - source
+      - amd64
+    components:
+      - main
+      - contrib
+      - non-free
+    upstream: https://ftp.debian.org/debian
+    suite: buster-updates
+    verifyrelease: 0E98404D386FA1D9|648ACFD622F3D138
+    description: Debian Buster-updates
+    stages:
+      - S10
+  scibian-php-bookworm:
+    origin: Sury.org
+    label: PHP repository
+    architectures:
+      - source
+      - amd64
+    components:
+      - main
+    upstream: https://packages.sury.org/php/
+    suite: bookworm
+    verifyrelease: B188E2B695BD4743
+    description: Mirror of the PHP repository for Bookworm
+    stages:
+      - S12
+  scibian-php-bullseye:
+    origin: Sury.org
+    label: PHP repository
+    architectures:
+      - source
+      - amd64
+    components:
+      - main
+    upstream: https://packages.sury.org/php/
+    suite: bullseye
+    verifyrelease: B188E2B695BD4743
+    description: Mirror of the PHP repository for Bullseye
+    stages:
+      - S11
+  scibian-postgresql:
+    origin: Postgresql
+    label: Postgresql repository
+    architectures:
+      - source
+      - amd64
+    components:
+      - main
+    upstream: https://apt.postgresql.org/pub/repos/apt
+    suite: bookworm-pgdg
+    verifyrelease: 7FCC7D46ACCC4CF8
+    description: Mirror of the Postgresql repository
+    stages:
+      - S12
+      - S11
+      - S10
+  scibian12:
+    origin: Scibian
+    label: Scibian
+    architectures:
+      - source
+      - amd64
+    components:
+      - main
+      - contrib
+      - non-free
+      - non-free-firmware
+    description: Scibian 12
+    stages:
+      - S12
+  scibian11:
+    origin: Scibian
+    label: Scibian
+    architectures:
+      - source
+      - amd64
+    components:
+      - main
+      - contrib
+      - non-free
+    description: Scibian 11
+    stages:
+      - S11
+  scibian10:
+    origin: Scibian
+    label: Scibian
+    architectures:
+      - source
+      - amd64
+    components:
+      - main
+      - contrib
+      - non-free
+    description: Scibian 10
+    stages:
+      - S10
+publishes:
+  dev:
+    type: filesystem
+    signexports: 1 # Uses default GPG key
+    signkey: 0xXXXXXXXX
+    dists:
+      - scibian12
+      - bookworm
+      - bookworm-backports
+      - bookworm-security
+      - bookworm-updates
+  iq:
+    type: filesystem
+    suffix: -iq
+    signexports: 1 # Uses default GPG key
+    signkey: 0xYYYYYYYY
+    dists:
+      - scibian12
+      - bookworm
+      - bookworm-security
+      - bookworm-updates
+      - bookworm-backports
+  prod:
+    type: filesystem
+    path: /srv/brian/aptly/public-prod
+    signexports: 1 # Uses default GPG key
+    signkey: 0xZZZZZZZZ
+    dists:
+      - scibian12
+      - bookworm
+      - bookworm-security
+      - bookworm-updates
+      - bookworm-backports

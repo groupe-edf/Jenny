@@ -1,0 +1,27 @@
+{% extends "base.html" %}{# -*- mode: web -*- #}
+{% block title %}Détail tâche {{ tid }}{% endblock %}
+{% block extrahead %}<meta http-equiv="refresh" content="5">{% endblock %}
+{% block content %}
+<table class="table table-striped">
+  <tr>
+    <th>ID</th>
+    <td>{{ tid }}</td>
+  </tr>
+  <tr>
+    <th>Détails</th>
+    <td><pre>{{ info['details'] }}</pre></td>
+  </tr>
+  <tr>
+    <th>Sortie</th>
+    <td><pre>{{ info['output'] }}</pre></td>
+  </tr>
+  </tr>
+</table>
+<div>
+  <a class="btn btn-sm btn-danger" href="/remove-task/{{tid}}">Supprimer</a>
+</div>
+<div>
+  <a href="/list-tasks">Retour à la liste de tâches</a>
+</div>
+{% endblock %}
+

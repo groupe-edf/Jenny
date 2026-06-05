@@ -1,0 +1,33 @@
+<script>
+  $(document).ready(function () {
+      $("#input-select-all").on("change",function () {
+          $(".checkgroup").prop("checked", $(this).prop("checked"));
+          $(".disablable").prop("disabled",! $(this).prop("checked"));
+      });
+  });
+
+  function enable_or_disable_loop() {
+      seen = false;
+      $(".checkgroup").each(function (index,element) {
+          if ($(element).prop("checked")) {
+              $(".disablable").prop("disabled",false);
+              seen = true;
+              return false;
+          }
+      })
+      if (! seen) {
+          $(".disablable").prop("disabled",true);
+      }
+  }
+  
+  $(document).ready(function () {
+      $(".checkgroup").on("change",function () {
+          if ($(this).prop("checked")) {
+              $(".disablable").prop("disabled",false);
+          } else {
+              enable_or_disable_loop();
+          }
+      });
+      enable_or_disable_loop();
+  });
+</script>

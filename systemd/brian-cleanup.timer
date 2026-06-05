@@ -1,0 +1,9 @@
+[Unit]
+Description=Package repository manager, periodic cleanup
+
+[Timer]
+OnCalendar=Sat *-*-* 6:05
+Persistent=true
+
+[Install]
+WantedBy=timers.target

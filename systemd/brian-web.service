@@ -1,0 +1,16 @@
+[Unit]
+Description=Package repository manager, web interface
+After=network.target
+
+[Service]
+Environment=FLASK_APP=brian.py
+Environment=FLASK_ENV=development
+WorkingDirectory=/usr/local/share/brian
+ExecStart=flask run --host=0.0.0.0
+User=_brian
+KillMode=mixed
+Restart=on-failure
+TimeoutStopSec=10s
+
+[Install]
+WantedBy=multi-user.target

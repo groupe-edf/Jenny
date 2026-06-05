@@ -278,14 +278,7 @@ contents change.
 
 ## TODO
 
-- Finish Brian→Jenny rename
-- I18n
-- Debian packaging
-- Improve documentation
-- Integrate with HTTP server to implement authentification/authorization
-- Improve logging for accountability
-- Provide monitoring endpoints
-- Add unit tests and full testsuite
+See https://salsa.debian.org/debian/jenny/-/work_items
 
 ## Authors, copyright, licensing
 

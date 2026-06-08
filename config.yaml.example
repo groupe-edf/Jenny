@@ -1,5 +1,5 @@
 # Example config file
-brian:
+jenny:
   basedir: ~/
   logdir: ~/logs/
   aptly_version: 1.6.2
@@ -332,7 +332,7 @@ publishes:
       - bookworm-backports
   prod:
     type: filesystem
-    path: /srv/brian/aptly/public-prod
+    path: /var/lib/jenny/aptly/public-prod
     signexports: 1 # Uses default GPG key
     signkey: 0xZZZZZZZZ
     dists:

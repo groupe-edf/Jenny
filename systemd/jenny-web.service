@@ -3,11 +3,11 @@ Description=Package repository manager, web interface
 After=network.target
 
 [Service]
-Environment=FLASK_APP=brian.py
+Environment=FLASK_APP=jenny.py
 Environment=FLASK_ENV=development
-WorkingDirectory=/usr/local/share/brian
+WorkingDirectory=/usr/share/jenny
 ExecStart=flask run --host=0.0.0.0
-User=_brian
+User=_jenny
 KillMode=mixed
 Restart=on-failure
 TimeoutStopSec=10s

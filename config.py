@@ -1,6 +1,6 @@
 #! /usr/bin/python3
 
-"""Parse and interpolate the Brian configuration file into a hash"""
+"""Parse and interpolate the Jenny configuration file into a hash"""
 
 import os
 import os.path
@@ -13,9 +13,9 @@ from base import de2str
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-configfiles = ["/etc/brian/config.yaml", os.path.expanduser("~/brian/config.yaml")]
+configfiles = ["/etc/jenny/config.yaml", os.path.expanduser("~/jenny/config.yaml")]
 
-brianconfig = {}
+jennyconfig = {}
 
 
 def load_config() -> None:
@@ -33,20 +33,20 @@ def load_config() -> None:
         logger.error("Cannot find config file")
         sys.exit(1)
 
-    brianconfig["stages"] = raw["stages"]
-    brianconfig["brian"] = raw["brian"]
-    brianconfig["environments"] = raw["environments"]
-    brianconfig["dists"] = {}
-    brianconfig["distsperbasename"] = {}
-    brianconfig["proxy"] = raw["dists"]["_default"]["proxy"]
-    brianconfig["noproxy"] = raw["dists"]["_default"]["noproxy"]
+    jennyconfig["stages"] = raw["stages"]
+    jennyconfig["jenny"] = raw["jenny"]
+    jennyconfig["environments"] = raw["environments"]
+    jennyconfig["dists"] = {}
+    jennyconfig["distsperbasename"] = {}
+    jennyconfig["proxy"] = raw["dists"]["_default"]["proxy"]
+    jennyconfig["noproxy"] = raw["dists"]["_default"]["noproxy"]
     for d in raw["dists"]:
         if d == "_default":
             continue
         if "disabled" in raw["dists"][d] and raw["dists"][d]["disabled"]:
             continue
 
-        for env in brianconfig["environments"]:
+        for env in jennyconfig["environments"]:
             if env:
                 dname = de2str(d, env)
             else:
@@ -58,7 +58,7 @@ def load_config() -> None:
                 if i == "upstream":
                     continue
                 dr[i] = raw["dists"][d][i]
-            if "upstream" in raw["dists"][d] and env == brianconfig["environments"][0]:
+            if "upstream" in raw["dists"][d] and env == jennyconfig["environments"][0]:
                 # Add / end of url upstream to match with ArchiveRoot mirror get
                 dr["upstream"] = (
                     raw["dists"][d]["upstream"]
@@ -74,17 +74,17 @@ def load_config() -> None:
                 i for i in dr["architectures"] if i != "source"
             ]
             dr["has-sources"] = "source" in dr["architectures"]
-            brianconfig["dists"][dname] = dr
-            if d not in brianconfig["distsperbasename"]:
-                brianconfig["distsperbasename"][d] = {
+            jennyconfig["dists"][dname] = dr
+            if d not in jennyconfig["distsperbasename"]:
+                jennyconfig["distsperbasename"][d] = {
                     "meta": {"stages": raw["dists"][d]["stages"]}
                 }
-            brianconfig["distsperbasename"][d][env] = dr
+            jennyconfig["distsperbasename"][d][env] = dr
 
-    brianconfig["publishes"] = {}
+    jennyconfig["publishes"] = {}
     for pub in raw["publishes"]:
-        brianconfig["publishes"][pub] = {}
-        brianconfig["publishes"][pub]["dists"] = []
+        jennyconfig["publishes"][pub] = {}
+        jennyconfig["publishes"][pub]["dists"] = []
         for d in raw["dists"]:
             if d == "_default":
                 continue
@@ -92,31 +92,31 @@ def load_config() -> None:
                 continue
             if d not in raw["publishes"][pub]["dists"]:
                 continue
-            brianconfig["publishes"][pub]["dists"].append(d)
+            jennyconfig["publishes"][pub]["dists"].append(d)
         try:
-            brianconfig["publishes"][pub]["suffix"] = raw["publishes"][pub]["suffix"]
+            jennyconfig["publishes"][pub]["suffix"] = raw["publishes"][pub]["suffix"]
         except KeyError:
-            brianconfig["publishes"][pub]["suffix"] = ""
+            jennyconfig["publishes"][pub]["suffix"] = ""
         try:
-            brianconfig["publishes"][pub]["env"] = raw["publishes"][pub]["env"]
+            jennyconfig["publishes"][pub]["env"] = raw["publishes"][pub]["env"]
         except KeyError:
-            brianconfig["publishes"][pub]["env"] = pub
+            jennyconfig["publishes"][pub]["env"] = pub
         try:
-            brianconfig["publishes"][pub]["ignore-errors"] = raw["publishes"][pub][
+            jennyconfig["publishes"][pub]["ignore-errors"] = raw["publishes"][pub][
                 "ignore-errors"
             ]
         except KeyError:
-            brianconfig["publishes"][pub]["ignore-errors"] = False
+            jennyconfig["publishes"][pub]["ignore-errors"] = False
 
         for i in ["type", "signexports", "signkey"]:
-            brianconfig["publishes"][pub][i] = raw["publishes"][pub][i]
+            jennyconfig["publishes"][pub][i] = raw["publishes"][pub][i]
 
-        if brianconfig["publishes"][pub]["type"] == "filesystem":
-            brianconfig["publishes"][pub]["path"] = raw["publishes"][pub]["path"]
-            brianconfig["publishes"][pub]["prefix"] = pub
-        elif brianconfig["publishes"][pub]["type"] == "s3":
+        if jennyconfig["publishes"][pub]["type"] == "filesystem":
+            jennyconfig["publishes"][pub]["path"] = raw["publishes"][pub]["path"]
+            jennyconfig["publishes"][pub]["prefix"] = pub
+        elif jennyconfig["publishes"][pub]["type"] == "s3":
             for v in ["endpoint", "bucket", "prefix", "keyid", "secretkey"]:
-                brianconfig["publishes"][pub][v] = raw["publishes"][pub][v]
+                jennyconfig["publishes"][pub][v] = raw["publishes"][pub][v]
 
 
 load_config()

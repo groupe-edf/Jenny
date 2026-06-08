@@ -3,9 +3,9 @@ Description=Package repository manager, incoming package processor
 After=network.target
 
 [Service]
-WorkingDirectory=/srv/brian
-ExecStart=/usr/local/share/brian/brian.py incoming-daemon
-User=_brian
+WorkingDirectory=/var/lib/jenny
+ExecStart=/usr/share/jenny/jenny.py incoming-daemon
+User=_jenny
 KillMode=mixed
 Restart=on-failure
 TimeoutStopSec=10s

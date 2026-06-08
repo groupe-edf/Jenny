@@ -1,8 +1,8 @@
 #! /usr/bin/python3
 
-"""Aptly backend for Brian
+"""Aptly backend for Jenny
 
-This module provides the primitives used by the rest of Brian, backed
+This module provides the primitives used by the rest of Jenny, backed
 by Aptly.
 """
 
@@ -26,14 +26,14 @@ from http.client import HTTPException
 from debian import deb822, debfile
 from zoneinfo import ZoneInfo
 from base import PackageEntry, logger, de2str, dec2str, str2de, str2dec
-from config import brianconfig
+from config import jennyconfig
 
 tz = ZoneInfo("Europe/Paris")
 
-brian_basedir = brianconfig["brian"]["basedir"]
-aptly_basedir = brianconfig["brian"]["aptly"]["basedir"]
-aptly_apiport = brianconfig["brian"]["aptly"]["apiport"]
-aptly_config_file = os.path.join(brian_basedir, "aptly.conf")
+jenny_basedir = jennyconfig["jenny"]["basedir"]
+aptly_basedir = jennyconfig["jenny"]["aptly"]["basedir"]
+aptly_apiport = jennyconfig["jenny"]["aptly"]["apiport"]
+aptly_config_file = os.path.join(jenny_basedir, "aptly.conf")
 batchsize = 1000
 
 snapre = r"\w+"
@@ -41,18 +41,18 @@ snapre = r"\w+"
 
 def _fill_publish_prefixes():
     rootdirs = {}
-    for bc_p in brianconfig["publishes"]:
-        if brianconfig["publishes"][bc_p]["type"] != "filesystem":
+    for bc_p in jennyconfig["publishes"]:
+        if jennyconfig["publishes"][bc_p]["type"] != "filesystem":
             continue
-        if "path" in brianconfig["publishes"][bc_p]:
-            rootdirs["fs0"] = brianconfig["publishes"][bc_p]["path"]
-            brianconfig["publishes"][bc_p]["publishprefix"] = "fs0"
+        if "path" in jennyconfig["publishes"][bc_p]:
+            rootdirs["fs0"] = jennyconfig["publishes"][bc_p]["path"]
+            jennyconfig["publishes"][bc_p]["publishprefix"] = "fs0"
             break
-    for bc_p in brianconfig["publishes"]:
-        if brianconfig["publishes"][bc_p]["type"] != "filesystem":
+    for bc_p in jennyconfig["publishes"]:
+        if jennyconfig["publishes"][bc_p]["type"] != "filesystem":
             continue
-        if "path" in brianconfig["publishes"][bc_p]:
-            bc_path = brianconfig["publishes"][bc_p]["path"]
+        if "path" in jennyconfig["publishes"][bc_p]:
+            bc_path = jennyconfig["publishes"][bc_p]["path"]
             if bc_path in rootdirs.values():
                 continue
             newindex = "fs%d" % len(rootdirs)
@@ -61,19 +61,19 @@ def _fill_publish_prefixes():
             bc_path = os.path.join(aptly_basedir, "public")
         irootdirs = {v: k for k, v in rootdirs.items()}
         index = irootdirs[bc_path]
-        brianconfig["publishes"][bc_p]["publishprefix"] = index
+        jennyconfig["publishes"][bc_p]["publishprefix"] = index
         logger.debug("Setting %s for %s", index, bc_p)
     if not rootdirs:
         default_rootdir = os.path.join(aptly_basedir, "public")
         rootdirs = {"fs0": default_rootdir}
-        brianconfig["publishes"][default_rootdir]["publishprefix"] = "fs0"
-    brianconfig["publishprefixes"] = rootdirs
+        jennyconfig["publishes"][default_rootdir]["publishprefix"] = "fs0"
+    jennyconfig["publishprefixes"] = rootdirs
 
 
 _envvars = {
-    "NO_PROXY": brianconfig["noproxy"],
-    "HTTP_PROXY": brianconfig["proxy"],
-    "HTTPS_PROXY": brianconfig["proxy"],
+    "NO_PROXY": jennyconfig["noproxy"],
+    "HTTP_PROXY": jennyconfig["proxy"],
+    "HTTPS_PROXY": jennyconfig["proxy"],
     "PATH": "/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games",
     "HOME": os.path.expanduser("~"),
 }
@@ -580,22 +580,22 @@ def _gen_aptly_config() -> None:
     fspes = {}
     s3pes = {}
     _fill_publish_prefixes()
-    for p in brianconfig["publishprefixes"]:
+    for p in jennyconfig["publishprefixes"]:
         fspes[p] = {
             "linkMethod": "hardlink",
             "verifyMethod": "md5",
-            "rootDir": brianconfig["publishprefixes"][p],
+            "rootDir": jennyconfig["publishprefixes"][p],
         }
-    for p in brianconfig["publishes"]:
-        if brianconfig["publishes"][p]["type"] != "s3":
+    for p in jennyconfig["publishes"]:
+        if jennyconfig["publishes"][p]["type"] != "s3":
             continue
         s3pes[p] = {
             "debug": False,
-            "endpoint": brianconfig["publishes"][p]["endpoint"],
-            "bucket": brianconfig["publishes"][p]["bucket"],
+            "endpoint": jennyconfig["publishes"][p]["endpoint"],
+            "bucket": jennyconfig["publishes"][p]["bucket"],
             "region": "none",
-            "awsAccessKeyID": brianconfig["publishes"][p]["keyid"],
-            "awsSecretAccessKey": brianconfig["publishes"][p]["secretkey"],
+            "awsAccessKeyID": jennyconfig["publishes"][p]["keyid"],
+            "awsSecretAccessKey": jennyconfig["publishes"][p]["secretkey"],
         }
     c = {
         "rootDir": os.path.join(aptly_basedir, "aptly-data"),
@@ -636,8 +636,8 @@ def _create_aptly_repos(asyncpub=False) -> None:
     am.refresh_mirror_list()
     am.refresh_published_repo_list()
     impacted_dists = set()
-    for d in brianconfig["dists"]:
-        c = brianconfig["dists"][d]
+    for d in jennyconfig["dists"]:
+        c = jennyconfig["dists"][d]
         for comp in c["components"]:
             mname = dec2str(c["basename"], c["env"], comp)
             if c["ismirror"]:
@@ -657,7 +657,7 @@ def _create_aptly_repos(asyncpub=False) -> None:
                 if mname not in am.mirrors:
                     logger.warning("Need to create mirror %s", mname)
                     am.aptly_via_api.api_mirror_create(spec)
-                    for env, params in brianconfig["publishes"].items():
+                    for env, params in jennyconfig["publishes"].items():
                         if c["basename"] in params["dists"]:
                             logger.warning(
                                 "Scheduling publication mirror %s/%s",
@@ -693,7 +693,7 @@ def _create_aptly_repos(asyncpub=False) -> None:
                     if need_update:
                         logger.warning("Need to update mirror %s", mname)
                         am.aptly_via_api.api_mirror_update(mname, spec)
-                        for env, params in brianconfig["publishes"].items():
+                        for env, params in jennyconfig["publishes"].items():
                             if c["basename"] in params["dists"]:
                                 logger.warning(
                                     "Scheduling publication repo %s/%s",
@@ -711,7 +711,7 @@ def _create_aptly_repos(asyncpub=False) -> None:
                 if mname not in am.repos:
                     logger.warning("Need to create repo %s", mname)
                     am.aptly_via_api.api_repos_create(info)
-                    for env, params in brianconfig["publishes"].items():
+                    for env, params in jennyconfig["publishes"].items():
                         if c["basename"] in params["dists"]:
                             logger.warning(
                                 "Scheduling publication repo %s/%s", env, c["basename"]
@@ -730,14 +730,14 @@ def _create_aptly_repos(asyncpub=False) -> None:
                     # if need_update:
                     #     logger.warning("Need to update repo %s", mname)
                     #     am.aptly_via_api.api_repos_update(mname, info)
-                    #     for env, params in brianconfig['publishes']:
+                    #     for env, params in jennyconfig['publishes']:
                     #         if mname in params['dists']:
                     #             impacted_dists.add(de2str(c["basename"], env))
 
     # Clean not used mirrors and published repo linked
     activated_mirrors = [
         dec2str(v["basename"], v["env"], component)
-        for k, v in brianconfig["dists"].items()
+        for k, v in jennyconfig["dists"].items()
         if v["ismirror"]
         for component in v["components"]
     ]
@@ -745,7 +745,7 @@ def _create_aptly_repos(asyncpub=False) -> None:
         if m not in activated_mirrors:
             logger.warning("Delete not used mirror %s", m)
             am.aptly_via_api.api_mirror_delete(m, force=True)
-            for env, params in brianconfig["publishes"].items():
+            for env, params in jennyconfig["publishes"].items():
                 distribution, _, component = str2dec(m)
                 if distribution in params["dists"]:
                     logger.warning(
@@ -756,7 +756,7 @@ def _create_aptly_repos(asyncpub=False) -> None:
     # Clean not used repositories and published repo linked
     activated_repos = [
         dec2str(v["basename"], v["env"], component)
-        for k, v in brianconfig["dists"].items()
+        for k, v in jennyconfig["dists"].items()
         if not v["ismirror"]
         for component in v["components"]
     ]
@@ -764,7 +764,7 @@ def _create_aptly_repos(asyncpub=False) -> None:
         if m not in activated_repos:
             logger.warning("Delete not used repo %s", m)
             am.aptly_via_api.api_repo_delete(m, force=True)
-            for env, params in brianconfig["publishes"].items():
+            for env, params in jennyconfig["publishes"].items():
                 distribution, _, component = str2dec(m)
                 if distribution in params["dists"]:
                     logger.warning(
@@ -778,7 +778,7 @@ def _create_aptly_repos(asyncpub=False) -> None:
     # Clean not used published repository
     activated_published_repositories = [
         de2str(dist, v["prefix"])
-        for v in brianconfig["publishes"].values()
+        for v in jennyconfig["publishes"].values()
         for dist in v["dists"]
     ]
     for pr in am.published_repos:
@@ -809,10 +809,10 @@ def _backend_update_mirror(mname) -> None:
 
 def backend_update_mirrors(asyncpub=False) -> None:
     impacted_dists = set()
-    for d in brianconfig["dists"]:
-        if not brianconfig["dists"][d]["ismirror"]:
+    for d in jennyconfig["dists"]:
+        if not jennyconfig["dists"][d]["ismirror"]:
             continue
-        c = brianconfig["dists"][d]
+        c = jennyconfig["dists"][d]
         for comp in c["components"]:
             mname = dec2str(c["basename"], c["env"], comp)
             _backend_update_mirror(mname)
@@ -825,10 +825,10 @@ def _backend_read_packages(
     distribution, snap: str = None, q: str = None
 ) -> dict[str, list[AptlyPackageEntry]]:
     d = {}
-    for comp in brianconfig["dists"][distribution]["components"]:
+    for comp in jennyconfig["dists"][distribution]["components"]:
         fulldist = dec2str(
-            brianconfig["dists"][distribution]["basename"],
-            brianconfig["dists"][distribution]["env"],
+            jennyconfig["dists"][distribution]["basename"],
+            jennyconfig["dists"][distribution]["env"],
             comp,
         )
         if snap:
@@ -837,7 +837,7 @@ def _backend_read_packages(
                 fullsnap,
                 {"q": q, "format": "details"},
             )
-        elif brianconfig["dists"][distribution]["ismirror"]:
+        elif jennyconfig["dists"][distribution]["ismirror"]:
             data = am.aptly_via_api.api_mirror_packages(
                 fulldist,
                 {"q": q, "format": "details"},
@@ -966,7 +966,7 @@ def backend_diff_dists(
 ) -> dict:
     leftdist = de2str(dist, leftenv)
     rightdist = de2str(dist, rightenv)
-    c = brianconfig["dists"][leftdist]
+    c = jennyconfig["dists"][leftdist]
 
     components = c["components"]
     onlyleft = []
@@ -979,7 +979,7 @@ def backend_diff_dists(
             sn1 = "%s_snapfor_%s" % (dec2str(dist, leftenv, comp), leftsnap)
         else:
             sn1 = "%s_%s_tmpfordiff" % (dec2str(dist, leftenv, comp), suffix)
-            if brianconfig["dists"][leftdist]["ismirror"]:
+            if jennyconfig["dists"][leftdist]["ismirror"]:
                 am.aptly_via_api.api_mirror_snapshot(dec2str(dist, leftenv, comp), sn1)
             else:
                 am.aptly_via_api.api_repos_snapshot(dec2str(dist, leftenv, comp), sn1)
@@ -987,7 +987,7 @@ def backend_diff_dists(
             sn2 = "%s_snapfor_%s" % (dec2str(dist, rightenv, comp), rightsnap)
         else:
             sn2 = "%s_%s_tmpfordiff" % (dec2str(dist, rightenv, comp), suffix)
-            if brianconfig["dists"][rightdist]["ismirror"]:
+            if jennyconfig["dists"][rightdist]["ismirror"]:
                 am.aptly_via_api.api_mirror_snapshot(dec2str(dist, rightenv, comp), sn2)
             else:
                 am.aptly_via_api.api_repos_snapshot(dec2str(dist, rightenv, comp), sn2)
@@ -1294,7 +1294,7 @@ def backend_empty_repository(
 
 
 def backend_include_changes(dist: str, changes: str, asyncpub=False) -> None:
-    c = brianconfig["dists"][dist]
+    c = jennyconfig["dists"][dist]
     distcomponents = c["components"]
     if c["ismirror"]:
         return
@@ -1343,7 +1343,7 @@ def backend_include_changes(dist: str, changes: str, asyncpub=False) -> None:
 
 
 def backend_include_debs(dist: str, debs: list[str], asyncpub=False) -> None:
-    c = brianconfig["dists"][dist]
+    c = jennyconfig["dists"][dist]
     distcomponents = c["components"]
     if c["ismirror"]:
         return
@@ -1395,11 +1395,11 @@ def backend_incoming_daemon() -> None:
     am.refresh_repo_list()
     i = inotify.adapters.Inotify()
     watched = {}
-    for d in brianconfig["dists"]:
-        c = brianconfig["dists"][d]
+    for d in jennyconfig["dists"]:
+        c = jennyconfig["dists"][d]
         if c["ismirror"]:
             continue
-        incomingdir = os.path.join(brian_basedir, "incoming", d)
+        incomingdir = os.path.join(jenny_basedir, "incoming", d)
         os.makedirs(incomingdir, exist_ok=True)
         i.add_watch(incomingdir)
         watched[incomingdir] = d
@@ -1431,7 +1431,7 @@ def backend_incoming_daemon() -> None:
 
 def backend_publish_dist(dist: str, asyncpub=False) -> None:
     logger.warning("backend_publish_dist (%s))", dist)
-    for target_name, target_data in brianconfig["publishes"].items():
+    for target_name, target_data in jennyconfig["publishes"].items():
         for target_dist in target_data["dists"]:
             if dist == de2str(target_dist, target_data["env"]):
                 backend_publish(target_name, [target_dist], asyncpub=asyncpub)
@@ -1441,28 +1441,28 @@ def backend_publish(target: str, sources: list[str] = None, asyncpub=False) -> N
     logger.warning("backend_publish %s/%s", target, sources)
     _fill_publish_prefixes()
     if target == "all":
-        for t in brianconfig["publishes"]:
+        for t in jennyconfig["publishes"]:
             backend_publish(t, asyncpub=asyncpub)
         return
 
-    pub = brianconfig["publishes"][target]
+    pub = jennyconfig["publishes"][target]
 
     suffix = str(uuid.uuid4())
     if not sources:
         sources = pub["dists"]
     for s in sources:
         source = de2str(s, pub["env"])
-        if source not in brianconfig["dists"]:
+        if source not in jennyconfig["dists"]:
             continue
         logger.warning("backend_publish for dist %s", s)
-        c = brianconfig["dists"][source]
+        c = jennyconfig["dists"][source]
         snapnames = {}
         for comp in c["components"]:
             mname = dec2str(s, pub["env"], comp)
             snap = "%s_%s_tmpforpublish" % (dec2str(s, pub["env"], comp), suffix)
             snapnames[mname] = snap
             realsnap = "%s-snap-for-%s" % (mname, target)
-            if brianconfig["dists"][source]["ismirror"]:
+            if jennyconfig["dists"][source]["ismirror"]:
                 logger.warning("mirror %s", snap)
                 statuscode, ret = am.aptly_via_api.api_mirror_snapshot(mname, snap)
                 if statuscode == 400:
@@ -1474,15 +1474,15 @@ def backend_publish(target: str, sources: list[str] = None, asyncpub=False) -> N
                 logger.warning("repo %s", snap)
                 print(am.aptly_via_api.api_repos_snapshot(mname, snap))
 
-        if brianconfig["publishes"][target]["type"] == "filesystem":
+        if jennyconfig["publishes"][target]["type"] == "filesystem":
             prefix = "filesystem:%(prefix)s:%(target)s" % {
-                "prefix": brianconfig["publishes"][target]["publishprefix"],
+                "prefix": jennyconfig["publishes"][target]["publishprefix"],
                 "target": target,
             }
-        elif brianconfig["publishes"][target]["type"] == "s3":
+        elif jennyconfig["publishes"][target]["type"] == "s3":
             prefix = "s3:%(target)s:%(prefix)s" % {
                 "target": target,
-                "prefix": brianconfig["publishes"][target]["prefix"],
+                "prefix": jennyconfig["publishes"][target]["prefix"],
             }
         else:
             prefix = None
@@ -1490,22 +1490,22 @@ def backend_publish(target: str, sources: list[str] = None, asyncpub=False) -> N
         distribution = s + pub["suffix"]
         sources = [
             {"Name": snapnames[dec2str(s, pub["env"], c)], "Component": c}
-            for c in brianconfig["dists"][source]["components"]
+            for c in jennyconfig["dists"][source]["components"]
         ]
         spec = {
             "Signing": {
-                "GpgKey": brianconfig["publishes"][target]["signkey"],
-                "Skip": not brianconfig["publishes"][target]["signexports"],
+                "GpgKey": jennyconfig["publishes"][target]["signkey"],
+                "Skip": not jennyconfig["publishes"][target]["signexports"],
             },
             "SkipContents": True,
         }
         if (
-            "backports" in brianconfig["dists"][source]
-            and brianconfig["dists"][source]["backports"]
+            "backports" in jennyconfig["dists"][source]
+            and jennyconfig["dists"][source]["backports"]
         ):
             spec["NotAutomatic"] = "yes"
             spec["ButAutomaticUpgrades"] = "yes"
-        spec["Architectures"] = brianconfig["dists"][source]["architectures"]
+        spec["Architectures"] = jennyconfig["dists"][source]["architectures"]
         spec["Distribution"] = distribution
         spec["Sources"] = sources
         spec["SourceKind"] = "snapshot"
@@ -1612,7 +1612,7 @@ def backend_fill_distribution_from_source(
     logger.warning("First, emptying target repository %s/%s", distribution, environment)
     backend_empty_repository(distribution, environment)
     d = de2str(distribution, environment)
-    c = brianconfig["dists"][d]
+    c = jennyconfig["dists"][d]
     am.refresh_mirror_list()
     for comp in c["components"]:
         mname = dec2str(distribution, environment, comp)
@@ -1666,8 +1666,8 @@ def backend_search_package(
         "q": f"(Name (= {package}))|($Source (= {package}))",
     }
 
-    for d in brianconfig["dists"]:
-        c = brianconfig["dists"][d]
+    for d in jennyconfig["dists"]:
+        c = jennyconfig["dists"][d]
         if dists and c["basename"] not in dists:
             continue
         if envs and c["env"] not in envs:
@@ -1748,13 +1748,13 @@ def backend_add_package_from_files(
     """
     dec = dec2str(distribution, environment, component)
     de = de2str(distribution, environment)
-    if de not in brianconfig["dists"]:
+    if de not in jennyconfig["dists"]:
         raise KeyError(f"Unknown dist/env {distribution}/{environment}")
-    if component not in brianconfig["dists"][de]["components"]:
+    if component not in jennyconfig["dists"][de]["components"]:
         raise KeyError(
             f"Unknown component {component} for dist/env {distribution}/{environment}"
         )
-    if brianconfig["dists"][de]["ismirror"]:
+    if jennyconfig["dists"][de]["ismirror"]:
         raise RuntimeError("Can't insert packages into a mirror")
     tmp = str(uuid.uuid4())
     am.aptly_via_api.api_files_upload(
@@ -1791,7 +1791,7 @@ def backend_list_snapshots() -> dict[str, dict[str, list[datetime.datetime]]]:
         }
     return {
         env: sortedsnaps[env]
-        for env in brianconfig["environments"]
+        for env in jennyconfig["environments"]
         if env in sortedsnaps
     }
 
@@ -1807,14 +1807,14 @@ def backend_create_snapshot(environment: str, name: str) -> None:
     except KeyError:
         pass
     suffix = f"_snapfor_{name}"
-    for de in brianconfig["dists"]:
+    for de in jennyconfig["dists"]:
         dist, env = str2de(de)
         if env != environment:
             continue
-        for comp in brianconfig["dists"][de]["components"]:
+        for comp in jennyconfig["dists"][de]["components"]:
             dec = dec2str(dist, environment, comp)
             sn = f"{dec}{suffix}"
-            if brianconfig["dists"][de]["ismirror"]:
+            if jennyconfig["dists"][de]["ismirror"]:
                 am.aptly_via_api.api_mirror_snapshot(dec, sn)
             else:
                 am.aptly_via_api.api_repos_snapshot(dec, sn)

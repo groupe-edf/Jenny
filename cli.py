@@ -1,6 +1,6 @@
 #! /usr/bin/python3
 
-"""CLI frontend for Brian
+"""CLI frontend for Jenny
 
 Feature set not yet on par with the web UI, but a couple of features
 are only available in the CLI:
@@ -21,8 +21,8 @@ import re
 
 from base import jenv
 from base import urlsep, de2str, str2de
-from brianlog import log_action
-from config import brianconfig
+from jennylog import log_action
+from config import jennyconfig
 from backend import (
     backend_diff_dists_grouped,
     backend_read_packages_grouped,
@@ -51,7 +51,7 @@ from backend import (
 )
 
 
-briancli = argh.EntryPoint("Brian")
+jennycli = argh.EntryPoint("Jenny")
 
 
 def log_action_cli(
@@ -71,16 +71,16 @@ def log_action_cli(
     )
 
 
-@briancli
+@jennycli
 def list_dists() -> None:
     "List known distributions"
-    dists = list(brianconfig["dists"].keys())
+    dists = list(jennyconfig["dists"].keys())
     dists.sort(key=str)
     for d in dists:
         print(d)
 
 
-@briancli
+@jennycli
 def list_packages(distribution: str, env: str) -> None:
     "List packages in a distribution"
     dist = de2str(distribution, env)
@@ -94,7 +94,7 @@ def list_packages(distribution: str, env: str) -> None:
 
 
 # TODO fix rendering
-@briancli
+@jennycli
 def compare_dists(leftenv: str, rightenv: str, dists: str, *packages: list[str]):
     dists = dists.split(urlsep)
 
@@ -131,14 +131,14 @@ def compare_dists(leftenv: str, rightenv: str, dists: str, *packages: list[str])
     )
 
 
-@briancli
+@jennycli
 def update() -> None:
     "Update mirror distributions from their upstream repositories"
     log_action_cli("update", [], [], [])
     backend_update_mirrors()
 
 
-@briancli
+@jennycli
 def include_changes(dist: str, changes: str) -> None:
     "Include a built package (*.changes) into a distribution"
     (environment, distribution) = str2de(dist)
@@ -146,7 +146,7 @@ def include_changes(dist: str, changes: str) -> None:
     backend_include_changes(dist, changes)
 
 
-@briancli
+@jennycli
 def include_debs(dist: str, *debs: list[str]) -> None:
     "Include one or multiple built package(s) (*.deb) into a distribution"
     (environment, distribution) = str2de(dist)
@@ -154,7 +154,7 @@ def include_debs(dist: str, *debs: list[str]) -> None:
     backend_include_debs(dist, debs)
 
 
-@briancli
+@jennycli
 def migrate_package(dist: str, fromenv: str, toenv: str, package: str) -> None:
     "Copy a package from one environment to another"
     log_action_cli("migrate-package", [fromenv, toenv], [dist], [package])
@@ -165,7 +165,7 @@ def migrate_package(dist: str, fromenv: str, toenv: str, package: str) -> None:
     )
 
 
-@briancli
+@jennycli
 def migrate_all_packages(fromenv: str, toenv: str, *dists: list[str]) -> None:
     "Copy all packages from one environment to another"
     log_action_cli("migrate-all-packages", [fromenv, toenv], dists, ["all"])
@@ -176,14 +176,14 @@ def migrate_all_packages(fromenv: str, toenv: str, *dists: list[str]) -> None:
     )
 
 
-@briancli
+@jennycli
 def remove_packages(distribution: str, environment: str, package: str) -> None:
     "Remove a package from a distribution"
     log_action_cli("remove-package", [environment], [distribution], [package])
     backend_remove_packages(distribution, environment, [package])
 
 
-@briancli
+@jennycli
 def import_keys() -> None:
     "Import repository signature keys"
     for k in glob.glob("keys/*.asc"):
@@ -194,28 +194,28 @@ def import_keys() -> None:
         )
 
 
-@briancli
+@jennycli
 def init() -> None:
-    "Do all one-time steps to configure brian and its backend"
+    "Do all one-time steps to configure jenny and its backend"
     import_keys()
     log_action_cli("init", [], [], [])
     backend_init()
 
 
-@briancli
+@jennycli
 def incoming_daemon() -> None:
-    "Brian daemon to process incoming queues"
+    "Jenny daemon to process incoming queues"
     backend_incoming_daemon()
 
 
-@briancli
+@jennycli
 def publish(target: str, *dists) -> None:
     "Publish repository set"
     log_action_cli("publish", [], [], [])
     backend_publish(target, dists)
 
 
-@briancli
+@jennycli
 def fill_distribution_from_source(
     distribution: str, environment: str, url: str, suite: str
 ) -> None:
@@ -224,55 +224,55 @@ def fill_distribution_from_source(
     backend_fill_distribution_from_source(distribution, environment, url, suite)
 
 
-@briancli
+@jennycli
 def search(package: str) -> None:
     "Search packages in all distributions"
     pprint(backend_search_package(package))
 
 
-@briancli
+@jennycli
 def create_web_user(email: str, password: str) -> None:
     import webapp
 
     webapp.create_user(email, password)
 
 
-@briancli
+@jennycli
 def cleanup() -> None:
     backend_drop_old_tmp_snapshots()
     backend_drop_upload_dirs()
     backend_cleanup()
 
 
-@briancli
+@jennycli
 def add_package(
     distribution: str, environment: str, component: str, *package: list[str]
 ) -> None:
     backend_add_package_from_files(distribution, environment, component, package)
 
 
-@briancli
+@jennycli
 def dump_config() -> None:
-    pprint(brianconfig)
+    pprint(jennyconfig)
 
 
-@briancli
+@jennycli
 def drop_all_publish() -> None:
     "Drop all published repositories"
     backend_drop_all_publish()
 
 
-@briancli
+@jennycli
 def create_snapshot(environment: str, name: str) -> None:
     backend_create_snapshot(environment, name)
 
 
-@briancli
+@jennycli
 def delete_snapshot(environment: str, name: str) -> None:
     backend_delete_snapshot(environment, name)
 
 
-@briancli
+@jennycli
 def list_snapshots() -> None:
     snapshots = backend_list_snapshots()
     for env in snapshots:
@@ -281,16 +281,16 @@ def list_snapshots() -> None:
             print(f"  {snap}: {snapshots[env][snap].strftime('%Y-%m-%d %H:%M:%S')}")
 
 
-@briancli
+@jennycli
 def list_tasks() -> None:
     pprint(backend_tasks())
 
 
-@briancli
+@jennycli
 def delete_task(tid: int) -> None:
     backend_delete_task(tid)
 
 
-@briancli
+@jennycli
 def clear_tasks() -> None:
     backend_clear_tasks()

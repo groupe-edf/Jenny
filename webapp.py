@@ -1,6 +1,6 @@
 #! /usr/bin/python3
 
-"""Web frontend for Brian
+"""Web frontend for Jenny
 
 Provides a UI to:
  * list distributions
@@ -23,10 +23,10 @@ from flask import Flask, render_template, redirect, url_for, g, request, session
 import werkzeug
 
 from base import urlsep, de2str, str2dec, PackageEntry, logger  # , dec2str
-from brianlog import log_action
-from config import load_config, brianconfig
+from jennylog import log_action
+from config import load_config, jennyconfig
 from backend import (
-    brian_basedir,
+    jenny_basedir,
     backend_diff_dists_grouped,
     backend_read_packages_grouped,
     backend_migrate_packages,
@@ -46,7 +46,7 @@ from backend import (
 
 webapp = Flask(__name__)
 webapp.secret_key = "theen6OoPheej4iefeeP"
-webapp.instance_path = os.path.join(brianconfig["brian"]["basedir"], "flask")
+webapp.instance_path = os.path.join(jennyconfig["jenny"]["basedir"], "flask")
 
 stagere = "[a-zA-Z0-9]*"
 envre = "[a-z0-9]*"
@@ -148,11 +148,11 @@ def handle_exception(e):
 def webapp_before_request():
     load_config()
     try:
-        g.brianconfig = brianconfig["brian"]
-        g.distributions = brianconfig["dists"]
-        g.distsperbasename = brianconfig["distsperbasename"]
-        g.stages = brianconfig["stages"]
-        g.environments = brianconfig["environments"]
+        g.jennyconfig = jennyconfig["jenny"]
+        g.distributions = jennyconfig["dists"]
+        g.distsperbasename = jennyconfig["distsperbasename"]
+        g.stages = jennyconfig["stages"]
+        g.environments = jennyconfig["environments"]
         g.envpairs = []
         ed = dict(enumerate(g.environments))
         for i in ed:
@@ -236,7 +236,7 @@ def webapp_delete_snapshot():
 @webapp.route("/set-stage/<stage>")
 def webapp_set_stage(stage: str):
     stage = parse_stage(stage)
-    if stage in brianconfig["stages"]:
+    if stage in jennyconfig["stages"]:
         session["curstage"] = stage
     else:
         session["curstage"] = ""
@@ -842,7 +842,7 @@ def webapp_search_package(package: str, version: str):
 @webapp.route("/api/upload-package/<dist>", methods=["POST"])
 def webapp_upload_package(dist: str):
     incomingdir = os.path.join(
-        brian_basedir, "incoming", f"{dist}--{brianconfig['environments'][0]}"
+        jenny_basedir, "incoming", f"{dist}--{jennyconfig['environments'][0]}"
     )
 
     if request.method != "POST":
@@ -857,7 +857,7 @@ def webapp_upload_package(dist: str):
         ip=request.remote_addr,
         user=g.current_user,
         action="upload-package",
-        environments=[brianconfig["environments"][0]],
+        environments=[jennyconfig["environments"][0]],
         distributions=[dist],
         packages=[f.filename for f in files],
     )

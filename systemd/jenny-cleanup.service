@@ -1,0 +1,8 @@
+[Unit]
+Description=Package repository manager, periodic cleanup
+
+[Service]
+Type=oneshot
+WorkingDirectory=/var/lib/jenny
+ExecStart=/usr/share/jenny/jenny.py cleanup
+User=_jenny

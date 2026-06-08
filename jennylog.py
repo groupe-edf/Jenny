@@ -1,12 +1,12 @@
 #! /usr/bin/python3
 
-"""A logging function for Brian"""
+"""A logging function for Jenny"""
 
 import os.path
 import datetime
 import filelock
 
-from config import brianconfig
+from config import jennyconfig
 from base import urlsep  # , logger
 
 
@@ -18,7 +18,7 @@ def log_action(
     distributions: list[str],
     packages: list[str],
 ) -> None:
-    logpath = os.path.join(brianconfig["brian"]["logdir"], "brian.log")
+    logpath = os.path.join(jennyconfig["jenny"]["logdir"], "jenny.log")
     timestamp = datetime.datetime.now()
     msgdata = {
         "timestamp": timestamp.isoformat(),

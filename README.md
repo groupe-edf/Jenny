@@ -9,13 +9,13 @@ We haven't finished renaming everything in the code yet.
 
 ## Purpose
 
-Brian is a tool to manage Debian package repositories for a
+Jenny is a tool to manage Debian package repositories for a
 Debian-like distribution. It handles incoming packages either built
 locally or mirrored from external sources, follows them through phases
 of development (called "environments"), and publishes them as
 repositories usable by `apt` and related tools.
 
-Brian was initially developed to handle [Scibian](https://scibian.org), a Debian derivative
+Jenny was initially developed to handle [Scibian](https://scibian.org), a Debian derivative
 distribution in use for scientific computing at EDF; it should,
 however, be generic enough to be useful in other contexts. Scibian is
 used as an example in the following README, as well as in the example
@@ -35,7 +35,7 @@ They're defined in the `stages` section of the configuration file.
 ### Distribution
 
 A distribution is a consistent set of packages, possibly from a given
-external source. Brian handles two types of distributions:
+external source. Jenny handles two types of distributions:
 
 - Mirrors: they're replicated from external package repositories. For
   instance, `bookworm` and `bookworm-backports` are two distributions
@@ -92,7 +92,7 @@ automated with Ansible/Puppet/etc.
 
 ## Workflow
 
-Packages initially enter Brian either from a mirror or from a local
+Packages initially enter Jenny either from a mirror or from a local
 build.
 
 Besides the origin of the contents, mirrors have three differences with
@@ -116,8 +116,8 @@ environment. Similarly, if a rollback is needed, a package in
 
 ### Initialization
 
-When starting a Brian instance from scratch, or after a change in
-configuration, the first operation to run is `brian.py init`. This
+When starting a Jenny instance from scratch, or after a change in
+configuration, the first operation to run is `jenny.py init`. This
 creates the data structures and configures the `aptly` backend, and it
 also imports the GPG keys used for verifying archive signatures.
 
@@ -134,7 +134,7 @@ Actually, this commands supports :
 
 ### Mirror updates
 
-`brian.py update` tells `aptly` to pull the contents of the external
+`jenny.py update` tells `aptly` to pull the contents of the external
 mirrors into the local structures. This step can take quite some time
 on the first run, but following runs will fetch the data incrementally
 and be much faster.
@@ -142,12 +142,12 @@ and be much faster.
 Reminder: the external mirrors are only replicated in the first
 environment (`test`).
 
-This command is run periodically by the `brian-update` systemd service
+This command is run periodically by the `jenny-update` systemd service
 and timer.
 
 ### Package manipulation
 
-The web interface is the main UI for Brian. It provides the following
+The web interface is the main UI for Jenny. It provides the following
 features:
 
 - display the contents of one distribution (mirror or repository);
@@ -160,7 +160,7 @@ features:
 - remove a package from one distribution (repository only).
 
 The web interface is meant to be used by hand.  It is started by the
-`brian-web` systemd service.
+`jenny-web` systemd service.
 
 For instance, to migrate a package from `test` to `stable`:
 
@@ -184,16 +184,16 @@ Packages can be included in a distribution in two ways. Both ways
 require an "upload", which is a full set of files with the
 corresponding `*.changes` file.
 
-- For manual inclusion, run `brian.py include-changes <dist> <foo>.changes`.
+- For manual inclusion, run `jenny.py include-changes <dist> <foo>.changes`.
 - You can also store the "upload" in the `incoming` directory; the
-  `brian-incoming` systemd service runs a daemon that watches that
+  `jenny-incoming` systemd service runs a daemon that watches that
   directory with `inotify` and processes uploads as soon as they
   arrive.
 
 ### Publication
 
 Once the contents of the distributions are considered to be in a
-consistent state, `brian.py publish <target>` generates the actual APT
+consistent state, `jenny.py publish <target>` generates the actual APT
 repository, with its package pool and metadata files. `<target>` can
 either be an environment (`test`/`stable`) or `all` to
 generate all repositories at once.
@@ -206,7 +206,7 @@ buckets that are available over HTTP.
 
 ## Configuration
 
-Brian is configured by way of a `config.yaml` file using the YAML
+Jenny is configured by way of a `config.yaml` file using the YAML
 syntax, describing a hierarchical data structure. The top-level
 structures are:
 
@@ -266,10 +266,10 @@ baz: quux
 Adding/removing a new repository/mirror requires the following steps:
 
 - add the relevant entry in the `config.yaml` file;
-- update `aptly`'s internal database by re-running `brian.py init`. This won't erase existing data;
+- update `aptly`'s internal database by re-running `jenny.py init`. This won't erase existing data;
 - restart the web UI so that the `aptly` process is restarted with its
   new configuration file;
-- also restart the `brian-incoming` service, for the same reason.
+- also restart the `jenny-incoming` service, for the same reason.
 
 These required steps can be orchestrated by a central configuration
 deployment system such as Ansible or Puppet or the like. Be sure to
@@ -282,7 +282,7 @@ See https://salsa.debian.org/debian/jenny/-/work_items
 
 ## Authors, copyright, licensing
 
-Brian is released under the terms of the GNU Affero General Public
+Jenny is released under the terms of the GNU Affero General Public
 License, version 3 or any later version.
 
 See `AUTHORS` for a list of authors.

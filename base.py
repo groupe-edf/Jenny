@@ -1,6 +1,6 @@
 #! /usr/bin/python3
 
-"""Base functions for Brian"""
+"""Base functions for Jenny"""
 
 import logging
 import re

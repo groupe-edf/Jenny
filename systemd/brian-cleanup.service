@@ -1,8 +1,0 @@
-[Unit]
-Description=Package repository manager, periodic cleanup
-
-[Service]
-Type=oneshot
-WorkingDirectory=/srv/brian
-ExecStart=/usr/local/share/brian/brian.py cleanup
-User=_brian

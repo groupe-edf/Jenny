@@ -47,7 +47,6 @@ from backend import (
     snapre,
 )
 
-
 webapp = Flask(__name__)
 webapp.secret_key = "theen6OoPheej4iefeeP"
 webapp.instance_path = os.path.join(jennyconfig["jenny"]["basedir"], "flask")
@@ -90,7 +89,7 @@ def parse_envsnap_envsnap(s, prefix="", sep="/"):
     if m := re.search(
         f"^{prefix}({envre})(?:=({snapre}))?{sep}({envre})(?:=({snapre}))?$", s
     ):
-        (leftenv, leftsnap, rightenv, rightsnap) = m.groups()
+        leftenv, leftsnap, rightenv, rightsnap = m.groups()
         if leftsnap == "None":
             leftsnap = None
         if rightsnap == "None":
@@ -102,7 +101,7 @@ def parse_envsnap_envsnap(s, prefix="", sep="/"):
 
 def parse_envsnap(s, prefix=""):
     if m := re.search(f"^{prefix}({envre})(?:=({snapre}))?$", s):
-        (env, snap) = m.groups()
+        env, snap = m.groups()
         if snap == "None":
             snap = None
         return (env, snap)
@@ -203,9 +202,7 @@ def webapp_list_dists():
 @webapp.route("/list-snapshots")
 def webapp_list_snapshots():
     session["snapshotsbyenv"] = backend_list_snapshots()
-    return render_template(
-        "list-snapshots.html"
-    )
+    return render_template("list-snapshots.html")
 
 
 @webapp.route("/create-snapshot", methods=["POST"])
@@ -277,7 +274,7 @@ def webapp_dist_action():
     else:
         packages = None
     if "list" in request.form and "env" in request.form:
-        (curenv, cursnap) = parse_envsnap(request.form["env"])
+        curenv, cursnap = parse_envsnap(request.form["env"])
         dists = []
         for b in request.form:
             if d := parse_dist(b, prefix="comparedist-"):
@@ -309,8 +306,8 @@ def webapp_dist_action():
         and "leftenv" in request.form
         and "leftenv" in request.form
     ):
-        (leftenv, leftsnap) = parse_envsnap(request.form["leftenv"])
-        (rightenv, rightsnap) = parse_envsnap(request.form["rightenv"])
+        leftenv, leftsnap = parse_envsnap(request.form["leftenv"])
+        rightenv, rightsnap = parse_envsnap(request.form["rightenv"])
         dists = []
         for b in request.form:
             if d := parse_dist(b, prefix="comparedist-"):
@@ -476,7 +473,7 @@ def migratediff():
     migratedpackages = 0
     for p in request.form:
         if x := parse_dist_pkg(p, prefix="migratesrcpkg/"):
-            (dist, pkg) = x
+            dist, pkg = x
             if dist not in srcpkgsperdist:
                 srcpkgsperdist[dist] = set()
             srcpkgsperdist[dist].add(pkg)
@@ -704,7 +701,7 @@ def removediff():
 
 
 def webapp_pre_remove_packages():
-    (srcpkgs, dists, env, _, removed, removedversions) = removediff()
+    srcpkgs, dists, env, _, removed, removedversions = removediff()
     return render_template(
         "pre-remove-packages.html",
         environment=env,
@@ -794,7 +791,7 @@ def webapp_migrate_packages():
 
 @webapp.route("/remove-packages", methods=["POST"])
 def webapp_remove_packages():
-    (srcpkgs, dists, env, srcperdist, removed, removedversions) = removediff()
+    srcpkgs, dists, env, srcperdist, removed, removedversions = removediff()
 
     for d in srcperdist:
         backend_remove_packages(
@@ -843,7 +840,7 @@ def webapp_search_package(package: str, version: str):
     for k in plist:
         for pe in plist[k]:
             if version == pe.version:
-                (d, e, c) = k
+                d, e, c = k
                 return f"FOUND in dist {d} environment {e} component {c}"
     return "NOTFOUND"
 

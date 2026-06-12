@@ -163,7 +163,6 @@ def webapp_before_request():
             for j in ed:
                 if i < j:
                     g.envpairs.append([ed[i], ed[j]])
-        g.snapshots = backend_list_snapshots()
         g.session = session
     except RuntimeError:
         pass
@@ -197,12 +196,16 @@ def webapp_list_dists():
     #     distributions=[],
     #     packages=[],
     # )
+    session["snapshotsbyenv"] = backend_list_snapshots()
     return render_template("list-dists.html")
 
 
 @webapp.route("/list-snapshots")
 def webapp_list_snapshots():
-    return render_template("list-snapshots.html")
+    session["snapshotsbyenv"] = backend_list_snapshots()
+    return render_template(
+        "list-snapshots.html"
+    )
 
 
 @webapp.route("/create-snapshot", methods=["POST"])
@@ -360,6 +363,7 @@ def webapp_list_packages(env: str, dists: str, packages: str = None):
     session["cursnap"] = cursnap
     session["dists"] = dists
     session["packages"] = packages if packages else ""
+    session["snapshotsbyenv"] = backend_list_snapshots()
     plist = packages.split(sep=urlsep) if packages else []
     if packages:
         q = "|".join(
@@ -411,6 +415,7 @@ def webapp_compare_dists(leftenv: str, rightenv: str, dists: str, packages: str 
     session["leftsnap"] = leftsnap
     session["rightsnap"] = rightsnap
     session["packages"] = packages if packages else ""
+    session["snapshotsbyenv"] = backend_list_snapshots()
     if packages:
         package_filter = [i.strip() for i in packages.split(urlsep) if i]
     else:

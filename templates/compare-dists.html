@@ -22,10 +22,10 @@
     <input type="hidden" name="comparedist-{{d}}" id="comparedist-{{d}}" value="1" form="form-comparedists" />
     <input type="hidden" name="migratedist/{{d}}" value="1">
     {% set diffdata = diffdatas[d] %}
-    {% if not g.distributions[diffdata.leftdist].ismirror and not leftsnap %}
+    {% if not g.distributions[diffdata.leftdist].isreadonly and not leftsnap %}
     {% set ns.leftok = true %}
     {% endif %}
-    {% if not g.distributions[diffdata.rightdist].ismirror and not rightsnap %}
+    {% if not g.distributions[diffdata.rightdist].isreadonly and not rightsnap %}
     {% set ns.rightok = true %}
     {% endif %}
     
@@ -42,7 +42,7 @@
       <tr>
 	<td />
 	<th class="text-center">
-	  {% if (not g.can_write) or ((g.distributions[diffdata.leftdist].ismirror or leftsnap) and (g.distributions[diffdata.rightdist].ismirror or rightsnap)) %}
+	  {% if (not g.can_write) or ((g.distributions[diffdata.leftdist].isreadonly or leftsnap) and (g.distributions[diffdata.rightdist].isreadonly or rightsnap)) %}
 	  {{ sourcepackage }}
 	  {% else %}
 	  <div class="form-check form-check-inline form-switch">

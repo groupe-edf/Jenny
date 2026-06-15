@@ -59,6 +59,7 @@ def load_config() -> None:
                     continue
                 dr[i] = raw["dists"][d][i]
             if "upstream" in raw["dists"][d] and env == jennyconfig["environments"][0]:
+                # Type: mirror of an external repository
                 # Add / end of url upstream to match with ArchiveRoot mirror get
                 dr["upstream"] = (
                     raw["dists"][d]["upstream"]
@@ -66,8 +67,21 @@ def load_config() -> None:
                     else raw["dists"][d]["upstream"] + "/"
                 )
                 dr["ismirror"] = True
-            else:
+                dr["isaggregate"] = False
+                dr["isreadonly"] = True
+            elif (
+                "aggregates" in raw["dists"][d]
+                and env == jennyconfig["environments"][0]
+            ):
+                # Type: (filtered) aggregate of one or more mirrors or repositories
                 dr["ismirror"] = False
+                dr["isaggregate"] = True
+                dr["isreadonly"] = True
+            else:
+                # Type: standard repository
+                dr["ismirror"] = False
+                dr["isaggregate"] = False
+                dr["isreadonly"] = False
             dr["name"] = dname
             dr["architectures"] = dr["architectures"]
             dr["binary-architectures"] = [

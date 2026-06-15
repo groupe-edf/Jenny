@@ -26,7 +26,7 @@
       {% for sourcepackage,packs in spacks.items() %}
       <tr>
 	<th colspan="2" class="text-center">
-	  {% if g.distributions[distribution+'--'+environment].ismirror or not g.can_write or snap %}
+	  {% if g.distributions[distribution+'--'+environment].isreadonly or not g.can_write or snap %}
 	  {{ sourcepackage }}
 	  {% else %}
 	  <div class="form-check form-check-inline form-switch">
@@ -88,7 +88,7 @@
 	<label for="targetrepo">Dépôt cible</label>
 	<select class="form-control" id="targetrepo" name="targetrepo">
 	  {% for d,dd in g.distributions.items() %}
-	  {% if dd.ismirror or not g.can_write %}
+	  {% if dd.isreadonly or not g.can_write %}
 	  {% else %}
 	  {% for c in dd['components'] %}
 	  <option value="{{ dd['basename'] }}--{{ dd['env'] }}--{{ c }}">{{ dd['basename'] }}/{{ c }}/{{ dd['env'] }}</option>

@@ -636,6 +636,21 @@ def _create_aptly_repos(asyncpub=False) -> None:
     am.refresh_mirror_list()
     am.refresh_published_repo_list()
     impacted_dists = set()
+    # Check components for aggregate repositories
+    for d in jennyconfig["dists"]:
+        if "aggregates" not in jennyconfig["dists"][d]:
+            continue
+        c = jennyconfig["dists"][d]
+        agg_sources = c["aggregates"]
+        sourcecomps = set()
+        for s in agg_sources:
+            sde = de2str(s, jennyconfig["environments"][0])
+            sourcecomps |= set(jennyconfig["dists"][sde]["components"])
+        if not sourcecomps.issubset(set(c["components"])):
+            raise ValueError(
+                f"Components for aggregate {d} do not include all the components present in its sources"
+            )
+
     for d in jennyconfig["dists"]:
         c = jennyconfig["dists"][d]
         for comp in c["components"]:
@@ -816,6 +831,54 @@ def backend_update_mirrors(asyncpub=False) -> None:
         for comp in c["components"]:
             mname = dec2str(c["basename"], c["env"], comp)
             _backend_update_mirror(mname)
+        impacted_dists.add(de2str(c["basename"], c["env"]))
+    for dist in sorted(list(impacted_dists)):
+        backend_publish_dist(dist, asyncpub=asyncpub)
+
+
+def backend_update_aggregates(asyncpub=False) -> None:
+    impacted_dists = set()
+    for d in jennyconfig["dists"]:
+        if not jennyconfig["dists"][d]["isaggregate"]:
+            continue
+        c = jennyconfig["dists"][d]
+        backend_remove_packages_from_formula(
+            c["basename"],
+            c["env"],
+            "Name",  # "Name" as a formula matches everything
+            publish=False,
+        )
+        for aggregate in c["aggregates"]:
+            fl1 = {
+                "(Name (= %(pname)s),($PackageType (= source)))" % {"pname": i}
+                for i in c["aggregates"][aggregate]
+            }
+            fl2 = {
+                "($Source (= %(pname)s),($PackageType (= deb)|$PackageType (= udeb)))|(Name (= %(pname)s))"
+                % {"pname": i}
+                for i in c["aggregates"][aggregate]
+            }
+            fl = list(fl1 | fl2)
+
+            de = de2str(aggregate, c["env"])
+
+            while fl:
+                sub = fl[:batchsize]
+                formula = "|".join(sub)
+                plist = backend_read_packages(de, q=formula)
+                while plist:
+                    keylists = {}
+                    for p in plist:
+                        if p.component not in keylists:
+                            keylists[p.component] = []
+                        keylists[p.component].append(p.key)
+                    for comp in keylists:
+                        am.aptly_via_api.api_repos_add_packages(
+                            dec2str(c["basename"], c["env"], comp),
+                            {"PackageRefs": keylists[comp]},
+                        )
+                    plist = plist[batchsize:]
+                fl = fl[batchsize:]
         impacted_dists.add(de2str(c["basename"], c["env"]))
     for dist in sorted(list(impacted_dists)):
         backend_publish_dist(dist, asyncpub=asyncpub)

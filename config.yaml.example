@@ -308,6 +308,12 @@ dists:
     description: Scibian 10
     stages:
       - S10
+    aggregates:
+      bullseye-backports:
+        - linux-image-amd64
+        - linux-image-6.1
+      bookworm-backports:
+        - libc6
 publishes:
   dev:
     type: filesystem

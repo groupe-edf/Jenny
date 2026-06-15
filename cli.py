@@ -31,6 +31,7 @@ from backend import (
     backend_migrate_packages,
     backend_remove_packages,
     backend_update_mirrors,
+    backend_update_aggregates,
     backend_init,
     backend_incoming_daemon,
     backend_publish,
@@ -136,6 +137,7 @@ def update() -> None:
     "Update mirror distributions from their upstream repositories"
     log_action_cli("update", [], [], [])
     backend_update_mirrors()
+    backend_update_aggregates()
 
 
 @jennycli

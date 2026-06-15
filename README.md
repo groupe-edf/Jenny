@@ -50,6 +50,15 @@ external source. Jenny handles two types of distributions:
   and/or from packages picked up from mirrors and manually *migrated*
   into a repository.
 
+- Aggregates: these are automatically populated from a list of
+  packages taken from other repositories or mirrors. They might be
+  used to assemble specific packages from particular distributions
+  into a consistent set, for example in order to support particular
+  hardware quirks or a small subset of an external mirror. The list
+  can contain names of source packages (all the binaries built from
+  these source packages are included) or direct binary packages,
+  including udebs.
+
 Each distribution (be it a mirror or a repository) is attached to one
 or more stages. For instance, `bookworm` is S12 only, but
 `scibian-postgresql` spans S10, S11 and S12.

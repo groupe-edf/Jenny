@@ -1628,7 +1628,7 @@ def backend_publish(target: str, sources: list[str] = None, asyncpub=False) -> N
             for field in spec.keys():
                 # Signing field is not present in GET /api/publish response
                 # The Sources and Snapshots fields may change with each publication.
-                if field not in ("Signing", "Snapshots", "Sources"):
+                if field not in ("Signing", "Snapshots", "Sources", "MultiDist"):
                     if isinstance(spec[field], list):
                         if set(spec[field]) != set(publish[field]):
                             field_changed.add(field)

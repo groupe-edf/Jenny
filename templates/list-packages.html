@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: © 2026-Present EDF
+
+SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+
 {% extends "base.html" %}{# -*- mode: web -*- #}
 
 {% block title %}Paquets de {% for d in listperdist %}{{d}}{% if not loop.last %}, {% endif %}{% endfor %} en environnement {{ environment }}{% if snap %}[{{ snap }}]{% endif %}{% endblock %}

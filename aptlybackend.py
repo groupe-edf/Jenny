@@ -1,5 +1,9 @@
 #! /usr/bin/python3
 
+# SPDX-FileCopyrightText: © 2026-Present EDF
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 """Aptly backend for Jenny
 
 This module provides the primitives used by the rest of Jenny, backed

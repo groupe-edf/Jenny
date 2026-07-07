@@ -197,6 +197,15 @@ class AptlyApiClient:
         logger.debug("api_mirror_update returned %d", status_code)
         return ret
 
+    def api_mirror_edit(self, name: str, spec=None) -> Optional[Any]:
+        if spec is None:
+            spec = {}
+        status_code, ret = self.api_post(
+            "mirrors/" + urllib.parse.quote(name, safe=""), data=spec
+        )
+        logger.debug("api_mirror_edit returned %d", status_code)
+        return ret
+
     def api_mirror_get(self, name: str) -> Optional[Any]:
         status_code, ret = self.api_get("mirrors/" + urllib.parse.quote(name, safe=""))
         logger.debug("api_mirror_get returned %d", status_code)
@@ -706,7 +715,8 @@ def _create_aptly_repos(asyncpub=False) -> None:
                                 need_update = True
                                 break
                     if need_update:
-                        logger.warning("Need to update mirror %s", mname)
+                        logger.warning("Need to edit and update mirror %s", mname)
+                        am.aptly_via_api.api_mirror_edit(mname, spec)
                         am.aptly_via_api.api_mirror_update(mname, spec)
                         for env, params in jennyconfig["publishes"].items():
                             if c["basename"] in params["dists"]:

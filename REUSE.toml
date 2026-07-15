@@ -1,0 +1,7 @@
+version = 1
+
+[[annotations]]
+path = [".gitignore", "AUTHORS", "README.md", "config.yaml.example", "run.sh", "systemd/**", "templates/**", "screenshots/**", "keys/**"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 EDF"
+SPDX-License-Identifier = "AGPL-3.0-or-later"

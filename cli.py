@@ -1,5 +1,9 @@
 #! /usr/bin/python3
 
+# SPDX-FileCopyrightText: © 2026-Present EDF
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 """CLI frontend for Jenny
 
 Feature set not yet on par with the web UI, but a couple of features

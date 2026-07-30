@@ -173,24 +173,24 @@ class AptlyApiClient:
     def api_package_show(self, key: str) -> int:
         status_code, ret = self.api_get("packages/" + urllib.parse.quote(key, safe=""))
         logger.debug("api_package_show returned %d", status_code)
-        return ret
+        return status_code, ret
 
     def api_mirror_list(self) -> Optional[Any]:
         status_code, ret = self.api_get("mirrors")
         logger.debug("api_mirror_list returned %d", status_code)
-        return ret
+        return status_code, ret
 
     def api_mirror_delete(self, name: str, force: bool = False) -> int:
-        status_code, _ = self.api_delete(
+        status_code, ret = self.api_delete(
             "mirrors/" + urllib.parse.quote(name, safe=""),
             params={"force": 1 if force else 0},
         )
-        return status_code
+        return status_code, ret
 
     def api_mirror_create(self, spec: dict) -> Optional[Any]:
         status_code, ret = self.api_post("mirrors", data=spec)
         logger.debug("api_mirror_create returned %d", status_code)
-        return ret
+        return status_code, ret
 
     def api_mirror_update(self, name: str, spec=None) -> Optional[Any]:
         if spec is None:
@@ -199,7 +199,7 @@ class AptlyApiClient:
             "mirrors/" + urllib.parse.quote(name, safe=""), data=spec
         )
         logger.debug("api_mirror_update returned %d", status_code)
-        return ret
+        return status_code, ret
 
     def api_mirror_edit(self, name: str, spec=None) -> Optional[Any]:
         if spec is None:
@@ -208,19 +208,19 @@ class AptlyApiClient:
             "mirrors/" + urllib.parse.quote(name, safe=""), data=spec
         )
         logger.debug("api_mirror_edit returned %d", status_code)
-        return ret
+        return status_code, ret
 
     def api_mirror_get(self, name: str) -> Optional[Any]:
         status_code, ret = self.api_get("mirrors/" + urllib.parse.quote(name, safe=""))
         logger.debug("api_mirror_get returned %d", status_code)
-        return ret
+        return status_code, ret
 
     def api_mirror_packages(self, name: str, spec: dict) -> int:
         status_code, ret = self.api_get(
             "mirrors/" + urllib.parse.quote(name, safe="") + "/packages", params=spec
         )
         logger.debug("api_mirror_packages returned %d", status_code)
-        return ret
+        return status_code, ret
 
     def api_mirror_snapshot(self, repo: str, snapshot_name: str) -> None:
         status_code, ret = self.api_post(
@@ -233,61 +233,61 @@ class AptlyApiClient:
     ## REPOS
     #############
     def api_repo_delete(self, name: str, force: bool = False) -> int:
-        status_code, _ = self.api_delete(
+        status_code, ret = self.api_delete(
             "repos/" + urllib.parse.quote(name, safe=""),
             params={"force": 1 if force else 0},
         )
-        return status_code
+        return status_code, ret
 
     def api_repos_update(self, name: str, spec: dict) -> Optional[Any]:
         status_code, ret = self.api_put(
             "repos/" + urllib.parse.quote(name, safe=""), data=spec
         )
         logger.debug("api_repos_update returned %d", status_code)
-        return ret
+        return status_code, ret
 
     def api_repos_get(self, name: str) -> Optional[Any]:
         status_code, ret = self.api_get("repos/" + urllib.parse.quote(name, safe=""))
         logger.debug("api_repos_get returned %d", status_code)
-        return ret
+        return status_code, ret
 
     def api_repos_create(self, spec: dict) -> Optional[Any]:
         status_code, ret = self.api_post("repos", data=spec)
         logger.debug("api_repos_create returned %d", status_code)
-        return ret
+        return status_code, ret
 
     def api_repos_list(self) -> Optional[Any]:
         status_code, ret = self.api_get("repos")
         logger.debug("api_repos_list returned %d", status_code)
-        return ret
+        return status_code, ret
 
     def api_repos_add_packages(self, name: str, spec: list[str]) -> int:
-        status_code, _ = self.api_post(
+        status_code, ret = self.api_post(
             "repos/" + urllib.parse.quote(name, safe="") + "/packages", data=spec
         )
         logger.debug("api_repos_add_packages returned %d", status_code)
-        return status_code
+        return status_code, ret
 
     def api_repos_add_from_upload(self, name: str, dirname: str) -> int:
-        status_code, _ = self.api_post(
+        status_code, ret = self.api_post(
             "repos/" + urllib.parse.quote(name, safe="") + "/file/" + dirname
         )
         logger.debug("api_repos_add_from_upload returned %d", status_code)
-        return status_code
+        return status_code, ret
 
     def api_repos_delete_packages(self, name: str, spec: list[str]) -> int:
-        status_code, _ = self.api_delete(
+        status_code, ret = self.api_delete(
             "repos/" + urllib.parse.quote(name, safe="") + "/packages",
             data=json.dumps(spec),
             headers={"Content-Type": "application/json"},
         )
         logger.debug("api_repos_delete_packages returned %d", status_code)
-        return status_code
+        return status_code, ret
 
     def api_snapshots_list(self):
         status_code, ret = self.api_get("snapshots")
         logger.debug("api_snapshots_list returned %d", status_code)
-        return ret
+        return status_code, ret
 
     def api_snapshots_update(self, snapshot: str, spec: dict):
         data = json.dumps(spec)
@@ -295,14 +295,14 @@ class AptlyApiClient:
             "snapshots" + "/" + urllib.parse.quote(snapshot, safe=""), data=data
         )
         logger.debug("api_snapshots_update returned %d", status_code)
-        return ret
+        return status_code, ret
 
     def api_snapshots_delete(self, snapshot: str):
         status_code, ret = self.api_delete(
             "snapshots" + "/" + urllib.parse.quote(snapshot, safe="")
         )
         logger.debug("api_snapshots_delete returned %d", status_code)
-        return ret
+        return status_code, ret
 
     def api_snapshots_diff(self, left: str, right: str):
         status_code, ret = self.api_get(
@@ -313,29 +313,29 @@ class AptlyApiClient:
             + urllib.parse.quote(right, safe="")
         )
         logger.debug("api_snapshots_diff returned %d", status_code)
-        return ret
+        return status_code, ret
 
     def api_snapshots_packages(self, snap: str, spec=dict):
         status_code, ret = self.api_get(
             "snapshots/" + urllib.parse.quote(snap, safe="") + "/packages", params=spec
         )
         logger.debug("api_snapshots_packages returned %d", status_code)
-        return ret
+        return status_code, ret
 
     def api_repos_snapshot(self, repo: str, snapshot_name: str) -> None:
-        status_code, _ = self.api_post(
+        status_code, ret = self.api_post(
             "repos/" + urllib.parse.quote(repo, safe="") + "/snapshots",
             data={"Name": snapshot_name},
         )
         logger.debug("api_repos_snapshot returned %d", status_code)
-        return status_code
+        return status_code, ret
 
     def api_repos_packages(self, repo: str, spec=dict):
         status_code, ret = self.api_get(
             "repos/" + urllib.parse.quote(repo, safe="") + "/packages", params=spec
         )
         logger.debug("api_repos_packages returned %d", status_code)
-        return ret
+        return status_code, ret
 
     ## FILES
     #############
@@ -345,19 +345,19 @@ class AptlyApiClient:
             "files/" + urllib.parse.quote(dirname, safe=""), files=files
         )
         logger.debug("api_files_upload returned %d", status_code)
-        return ret
+        return status_code, ret
 
     def api_files_list_dirs(self):
         status_code, ret = self.api_get("files")
         logger.debug("api_files_list_dirs returned %d", status_code)
-        return ret
+        return status_code, ret
 
     def api_files_delete_dir(self, dirname: str):
         status_code, ret = self.api_delete(
             "files/" + urllib.parse.quote(dirname, safe="")
         )
         logger.debug("api_files_delete_dir returned %d", status_code)
-        return ret
+        return status_code, ret
 
     ## PUBLISH
     #############
@@ -365,7 +365,7 @@ class AptlyApiClient:
     def api_publish_list(self) -> list:
         status_code, ret = self.api_get("publish")
         logger.debug("api_publish_list returned %d", status_code)
-        return ret
+        return status_code, ret
 
     def api_publish_get(self, prefix: str, distribution: str) -> Optional[Any]:
         status_code, ret = self.api_get(
@@ -375,7 +375,7 @@ class AptlyApiClient:
             + urllib.parse.quote(distribution, safe="")
         )
         logger.debug("api_publish_get returned %d", status_code)
-        return ret if status_code == 200 else False
+        return status_code, (ret if status_code == 200 else False)
 
     def api_publish_create(self, prefix: str, spec=dict, asyncpub=False) -> int:
         status_code, ret = self.api_post(
@@ -385,7 +385,7 @@ class AptlyApiClient:
             headers={"Content-Type": "application/json"},
         )
         logger.debug("api_publish_create returned %d/%s", status_code, ret)
-        return status_code
+        return status_code, ret
 
     def api_publish_update(
         self, prefix: str, distribution: str, spec=dict, asyncpub=False
@@ -402,7 +402,7 @@ class AptlyApiClient:
             headers={"Content-Type": "application/json"},
         )
         logger.debug("api_publish_update returned %d/%s", status_code, ret)
-        return status_code
+        return status_code, ret
 
     def api_publish_delete(
         self,
@@ -422,7 +422,7 @@ class AptlyApiClient:
             },
         )
         logger.debug("api_publish_delete returned %d/%s", status_code, ret)
-        return status_code
+        return status_code, ret
 
     def api_publish_list_pending_changes(self, prefix: str, distribution: str) -> dict:
         status_code, ret = self.api_get(
@@ -433,12 +433,12 @@ class AptlyApiClient:
             + "/sources"
         )
         logger.debug("api_publish_list_pending_changes returned %d", status_code)
-        return ret
+        return status_code, ret
 
     def api_publish_discard_pending_changes(
         self, prefix: str, distribution: str
     ) -> int:
-        status_code, _ = self.api_delete(
+        status_code, ret = self.api_delete(
             "publish/"
             + urllib.parse.quote(prefix, safe="")
             + "/"
@@ -446,7 +446,7 @@ class AptlyApiClient:
             + "/sources"
         )
         logger.debug("api_publish_discard_pending_changes returned %d", status_code)
-        return status_code
+        return status_code, ret
 
     def api_publish_replace_source_components(
         self, prefix: str, distribution: str, spec=dict
@@ -461,7 +461,7 @@ class AptlyApiClient:
             headers={"Content-Type": "application/json"},
         )
         logger.debug("api_publish_replace_source_components returned %d", status_code)
-        return ret
+        return status_code, ret
 
     def api_publish_add_source_components(
         self, prefix: str, distribution: str, spec=dict
@@ -476,7 +476,7 @@ class AptlyApiClient:
             headers={"Content-Type": "application/json"},
         )
         logger.debug("api_publish_add_source_components returned %d", status_code)
-        return ret
+        return status_code, ret
 
     def api_publish_update_source_component(
         self, prefix: str, distribution: str, component: str, spec=dict
@@ -492,12 +492,12 @@ class AptlyApiClient:
             headers={"Content-Type": "application/json"},
         )
         logger.debug("api_publish_update_source_component returned %d", status_code)
-        return ret
+        return status_code, ret
 
     def api_publish_remove_source_component(
         self, prefix: str, distribution: str, component: str
     ) -> int:
-        status_code, _ = self.api_delete(
+        status_code, ret = self.api_delete(
             "publish/"
             + urllib.parse.quote(prefix, safe="")
             + "/"
@@ -506,7 +506,7 @@ class AptlyApiClient:
             + urllib.parse.quote(component, safe="")
         )
         logger.debug("api_publish_remove_source_component returned %d", status_code)
-        return status_code
+        return status_code, ret
 
     def api_publish_update_published_repository(
         self, prefix: str, distribution: str, spec=dict
@@ -521,7 +521,7 @@ class AptlyApiClient:
             headers={"Content-Type": "application/json"},
         )
         logger.debug("api_publish_update_published_repository returned %d", status_code)
-        return ret
+        return status_code, ret
 
     ## CLEANUP
     #############
@@ -529,7 +529,7 @@ class AptlyApiClient:
     def api_db_cleanup(self) -> Optional[Any]:
         status_code, ret = self.api_post("db/cleanup")
         logger.debug("api_db_cleanup returned %d", status_code)
-        return ret
+        return status_code, ret
 
     ## TASKS
     ###########
@@ -537,27 +537,27 @@ class AptlyApiClient:
     def api_tasks(self) -> Optional[Any]:
         status_code, ret = self.api_get("tasks")
         logger.debug("api_tasks returned %d", status_code)
-        return ret
+        return status_code, ret
 
     def api_task_delete(self, tid: int) -> Optional[Any]:
-        status_code, _ = self.api_delete(f"tasks/{tid}")
+        status_code, ret = self.api_delete(f"tasks/{tid}")
         logger.debug("api_tasks_delete returned %d", status_code)
-        return status_code
+        return status_code, ret
 
     def api_task_output(self, tid: int) -> Optional[Any]:
         status_code, ret = self.api_get(f"tasks/{tid}/output")
         logger.debug("api_tasks_output returned %d", status_code)
-        return ret
+        return status_code, ret
 
     def api_task_detail(self, tid: int) -> Optional[Any]:
         status_code, ret = self.api_get(f"tasks/{tid}/detail")
         logger.debug("api_tasks_detail returned %d", status_code)
-        return ret
+        return status_code, ret
 
     def api_tasks_clear(self) -> Optional[Any]:
         status_code, ret = self.api_post("tasks-clear")
         logger.debug("api_tasks_clear returned %d", status_code)
-        return ret
+        return status_code, ret
 
 
 class AptlyManager:
@@ -567,16 +567,16 @@ class AptlyManager:
         self.aptly_via_api = AptlyApiClient()
 
     def refresh_mirror_list(self) -> None:
-        self.mirrors = [m["Name"] for m in self.aptly_via_api.api_mirror_list()]
+        self.mirrors = [m[1]["Name"] for m in self.aptly_via_api.api_mirror_list()]
 
     def refresh_repo_list(self) -> None:
         repos = set()
         for i in self.aptly_via_api.api_repos_list():
-            repos.add(i["Name"])
+            repos.add(i[1]["Name"])
         self.repos = sorted(list(repos))
 
     def refresh_published_repo_list(self) -> None:
-        self.published_repos = [m for m in self.aptly_via_api.api_publish_list()]
+        self.published_repos = [m[1] for m in self.aptly_via_api.api_publish_list()]
 
     def update_mirrors(self) -> None:
         self.refresh_mirror_list()
@@ -695,7 +695,7 @@ def _create_aptly_repos(asyncpub=False) -> None:
                             impacted_dists.add(de2str(c["basename"], env))
                 else:
                     logger.warning("Mirror %s already exists", mname)
-                    current_spec = am.aptly_via_api.api_mirror_get(mname)
+                    _, current_spec = am.aptly_via_api.api_mirror_get(mname)
                     need_update = False
                     for field in spec.copy():
                         if field == "ArchiveURL":
@@ -749,7 +749,7 @@ def _create_aptly_repos(asyncpub=False) -> None:
                 else:
                     logger.warning("Repo %s already exists", mname)
                     # TODO after https://github.com/aptly-dev/aptly/issues/1453 issue will be solved
-                    # current_info = am.aptly_via_api.api_repos_get(mname)
+                    # _, current_info = am.aptly_via_api.api_repos_get(mname)
                     # need_update=False
                     # for field in info:
                     #     if current_info[field] != info[field]:
@@ -910,17 +910,17 @@ def _backend_read_packages(
         )
         if snap:
             fullsnap = f"{fulldist}_snapfor_{snap}"
-            data = am.aptly_via_api.api_snapshots_packages(
+            _, data = am.aptly_via_api.api_snapshots_packages(
                 fullsnap,
                 {"q": q, "format": "details"},
             )
         elif jennyconfig["dists"][distribution]["ismirror"]:
-            data = am.aptly_via_api.api_mirror_packages(
+            _, data = am.aptly_via_api.api_mirror_packages(
                 fulldist,
                 {"q": q, "format": "details"},
             )
         else:
-            data = am.aptly_via_api.api_repos_packages(
+            _, data = am.aptly_via_api.api_repos_packages(
                 fulldist,
                 {"q": q, "format": "details"},
             )
@@ -968,7 +968,7 @@ def _backend_diff_snaps(sn1, leftdist, sn2, rightdist, comp):
     diffver = []
     key2pe = {}
     key2source = {}
-    diff = am.aptly_via_api.api_snapshots_diff(sn1, sn2)
+    _, diff = am.aptly_via_api.api_snapshots_diff(sn1, sn2)
     for d in diff:
         if d == "error":
             continue
@@ -1011,7 +1011,7 @@ def _backend_diff_snaps(sn1, leftdist, sn2, rightdist, comp):
         sub = fl[:batchsize]
         formula = "|".join(sub)
         for s in [sn1, sn2]:
-            tmp = am.aptly_via_api.api_snapshots_packages(
+            _, tmp = am.aptly_via_api.api_snapshots_packages(
                 s,
                 {
                     "q": formula,
@@ -1549,7 +1549,7 @@ def backend_publish(target: str, sources: list[str] = None, asyncpub=False) -> N
                         am.aptly_via_api.api_mirror_snapshot(mname, snap)
             else:
                 logger.warning("repo %s", snap)
-                print(am.aptly_via_api.api_repos_snapshot(mname, snap))
+                print(am.aptly_via_api.api_repos_snapshot(mname, snap)[1])
 
         if jennyconfig["publishes"][target]["type"] == "filesystem":
             prefix = "filesystem:%(prefix)s:%(target)s" % {
@@ -1595,7 +1595,7 @@ def backend_publish(target: str, sources: list[str] = None, asyncpub=False) -> N
             logger.warning("start snapshot update for %s", s)
             am.aptly_via_api.api_snapshots_update(realsnap, {"Name": renamedsnap})
             logger.warning("snapshot update ok for %s", s)
-        publish = am.aptly_via_api.api_publish_get(prefix, distribution)
+        _, publish = am.aptly_via_api.api_publish_get(prefix, distribution)
         if publish:
             published_components = set(
                 {source["Component"] for source in publish["Sources"]}
@@ -1638,7 +1638,7 @@ def backend_publish(target: str, sources: list[str] = None, asyncpub=False) -> N
                 am.aptly_via_api.api_publish_create(prefix, spec, asyncpub=asyncpub)
             logger.warning("start publish update for %s", s)
             status = None
-            status = am.aptly_via_api.api_publish_update(
+            status, _ = am.aptly_via_api.api_publish_update(
                 prefix, distribution, spec, asyncpub=asyncpub
             )
             if status not in {200, 202}:
@@ -1651,7 +1651,7 @@ def backend_publish(target: str, sources: list[str] = None, asyncpub=False) -> N
                 logger.warning("publish update ok for %s", s)
         else:
             logger.warning("start publish create for %s", s)
-            status = am.aptly_via_api.api_publish_create(
+            status, _ = am.aptly_via_api.api_publish_create(
                 prefix, spec, asyncpub=asyncpub
             )
             if status in {201, 202}:
@@ -1707,7 +1707,7 @@ def backend_fill_distribution_from_source(
             # Workaround for packages being referenced in Sources but not actually present
             spec["Filter"] = "!Extra-Source-Only (yes)"
 
-            res = am.aptly_via_api.api_mirror_create(spec)
+            _, res = am.aptly_via_api.api_mirror_create(spec)
             if "error" in res:
                 logger.warning(res)
                 logger.warning("Skipping")
@@ -1718,11 +1718,11 @@ def backend_fill_distribution_from_source(
         logger.warning("Updating mirror %s", mname)
         _backend_update_mirror(mname)
         logger.warning("Getting package list from %s", mname)
-        data = am.aptly_via_api.api_mirror_packages(mname, spec={})
+        _, data = am.aptly_via_api.api_mirror_packages(mname, spec={})
         logger.debug(data)
         logger.warning("Migrating packages from %s", mname)
         while data:
-            res = am.aptly_via_api.api_repos_add_packages(
+            _, res = am.aptly_via_api.api_repos_add_packages(
                 dec2str(distribution, environment, comp),
                 {"PackageRefs": data[:batchsize]},
             )
@@ -1755,20 +1755,20 @@ def backend_search_package(
             mname = dec2str(c["basename"], c["env"], comp)
             if c["ismirror"]:
                 # for i in am.aptly_via_api.api_mirror_packages(mname, spec=spec):
-                #    logger.warning("%s -- %s -- %s", i, d, comp)
+                #    logger.warning("%s -- %s -- %s", i[1], d, comp)
                 try:
                     r = [
-                        _parsetope(i, d, comp)
+                        _parsetope(i[1], d, comp)
                         for i in am.aptly_via_api.api_mirror_packages(mname, spec=spec)
                     ]
                 except ValueError:
                     r = []
             else:
                 # for i in am.aptly_via_api.api_repos_packages(mname, spec=spec):
-                #    logger.warning("%s -- %s -- %s", i, d, comp)
+                #    logger.warning("%s -- %s -- %s", i[1], d, comp)
                 try:
                     r = [
-                        _parsetope(i, d, comp)
+                        _parsetope(i[1], d, comp)
                         for i in am.aptly_via_api.api_repos_packages(mname, spec=spec)
                     ]
                 except ValueError:
@@ -1782,7 +1782,7 @@ def backend_search_package(
 
 def backend_drop_old_tmp_snapshots() -> None:
     for i in am.aptly_via_api.api_snapshots_list():
-        name = i["Name"]
+        name = i[1]["Name"]
         if not re.search("_tmpfor", name):
             continue
         # There is also a datetime.datetime.fromisoformat() method,
@@ -1799,6 +1799,7 @@ def backend_drop_old_tmp_snapshots() -> None:
 
 def backend_drop_all_publish() -> None:
     for i in am.aptly_via_api.api_publish_list():
+        i = i[1]
         print(i)
         distribution = i["Distribution"]
         prefix = i["Prefix"]
@@ -1809,8 +1810,8 @@ def backend_drop_all_publish() -> None:
 
 def backend_drop_upload_dirs() -> None:
     for d in am.aptly_via_api.api_files_list_dirs():
-        logger.warning("Deleting upload dir %s", d)
-        am.aptly_via_api.api_files_delete_dir(d)
+        logger.warning("Deleting upload dir %s", d[1])
+        am.aptly_via_api.api_files_delete_dir(d[1])
 
 
 def backend_add_package_from_files(
@@ -1844,7 +1845,7 @@ def backend_add_package_from_files(
 def backend_list_snapshots() -> dict[str, dict[str, list[datetime.datetime]]]:
     snaps = {}
     for i in am.aptly_via_api.api_snapshots_list():
-        name = i["Name"]
+        name = i[1]["Name"]
         m = re.search(r"(.*)_snapfor_(" + snapre + ")", name)
         if not m:
             continue
@@ -1902,7 +1903,7 @@ def backend_delete_snapshot(environment: str, name: str) -> None:
     snaps = backend_list_snapshots()
     _ = snaps[environment][name]
     for i in am.aptly_via_api.api_snapshots_list():
-        iname = i["Name"]
+        iname = i[1]["Name"]
         m = re.search(r"(.*)_snapfor_(" + snapre + ")", iname)
         if not m:
             continue
@@ -1925,6 +1926,7 @@ def backend_tasks() -> None:
     }
     tasks = []
     for t in am.aptly_via_api.api_tasks():
+        t = t[1]
         # Update published snapshot repository filesystem:fs1:stable/trixie
         # The regex says:
         # anything, as long as possible, until a colon (named group "publishtype")
@@ -1957,17 +1959,17 @@ def backend_tasks() -> None:
 
 
 def backend_delete_task(tid: int):
-    return am.aptly_via_api.api_task_delete(tid)
+    return am.aptly_via_api.api_task_delete(tid)[0]
 
 
 def backend_clear_tasks():
-    return am.aptly_via_api.api_tasks_clear()
+    return am.aptly_via_api.api_tasks_clear()[1]
 
 
 def backend_task_info(tid: int):
     return {
-        "detail": am.aptly_via_api.api_task_detail(tid),
-        "output": am.aptly_via_api.api_task_output(tid),
+        "detail": am.aptly_via_api.api_task_detail(tid)[1],
+        "output": am.aptly_via_api.api_task_output(tid)[1],
     }
 
 

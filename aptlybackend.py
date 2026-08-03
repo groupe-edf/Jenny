@@ -575,16 +575,16 @@ class AptlyManager:
         self.aptly_via_api = AptlyApiClient()
 
     def refresh_mirror_list(self) -> None:
-        self.mirrors = [m[1]["Name"] for m in self.aptly_via_api.api_mirror_list()]
+        self.mirrors = [m["Name"] for m in self.aptly_via_api.api_mirror_list()[1]]
 
     def refresh_repo_list(self) -> None:
         repos = set()
-        for i in self.aptly_via_api.api_repos_list():
-            repos.add(i[1]["Name"])
+        for i in self.aptly_via_api.api_repos_list()[1]:
+            repos.add(i["Name"])
         self.repos = sorted(list(repos))
 
     def refresh_published_repo_list(self) -> None:
-        self.published_repos = [m[1] for m in self.aptly_via_api.api_publish_list()]
+        self.published_repos = [m for m in self.aptly_via_api.api_publish_list()[1]]
 
     def update_mirrors(self) -> None:
         self.refresh_mirror_list()
@@ -1764,21 +1764,25 @@ def backend_search_package(
             mname = dec2str(c["basename"], c["env"], comp)
             if c["ismirror"]:
                 # for i in am.aptly_via_api.api_mirror_packages(mname, spec=spec):
-                #    logger.warning("%s -- %s -- %s", i[1], d, comp)
+                #    logger.warning("%s -- %s -- %s", i, d, comp)
                 try:
                     r = [
-                        _parsetope(i[1], d, comp)
-                        for i in am.aptly_via_api.api_mirror_packages(mname, spec=spec)
+                        _parsetope(i, d, comp)
+                        for i in am.aptly_via_api.api_mirror_packages(mname, spec=spec)[
+                            1
+                        ]
                     ]
                 except ValueError:
                     r = []
             else:
                 # for i in am.aptly_via_api.api_repos_packages(mname, spec=spec):
-                #    logger.warning("%s -- %s -- %s", i[1], d, comp)
+                #    logger.warning("%s -- %s -- %s", i, d, comp)
                 try:
                     r = [
-                        _parsetope(i[1], d, comp)
-                        for i in am.aptly_via_api.api_repos_packages(mname, spec=spec)
+                        _parsetope(i, d, comp)
+                        for i in am.aptly_via_api.api_repos_packages(mname, spec=spec)[
+                            1
+                        ]
                     ]
                 except ValueError:
                     r = []
@@ -1790,8 +1794,8 @@ def backend_search_package(
 
 
 def backend_drop_old_tmp_snapshots() -> None:
-    for i in am.aptly_via_api.api_snapshots_list():
-        name = i[1]["Name"]
+    for i in am.aptly_via_api.api_snapshots_list()[1]:
+        name = i["Name"]
         if not re.search("_tmpfor", name):
             continue
         # There is also a datetime.datetime.fromisoformat() method,
@@ -1807,8 +1811,7 @@ def backend_drop_old_tmp_snapshots() -> None:
 
 
 def backend_drop_all_publish() -> None:
-    for i in am.aptly_via_api.api_publish_list():
-        i = i[1]
+    for i in am.aptly_via_api.api_publish_list()[1]:
         print(i)
         distribution = i["Distribution"]
         prefix = i["Prefix"]
@@ -1818,9 +1821,9 @@ def backend_drop_all_publish() -> None:
 
 
 def backend_drop_upload_dirs() -> None:
-    for d in am.aptly_via_api.api_files_list_dirs():
-        logger.warning("Deleting upload dir %s", d[1])
-        am.aptly_via_api.api_files_delete_dir(d[1])
+    for d in am.aptly_via_api.api_files_list_dirs()[1]:
+        logger.warning("Deleting upload dir %s", d)
+        am.aptly_via_api.api_files_delete_dir(d)
 
 
 def backend_add_package_from_files(
@@ -1853,8 +1856,8 @@ def backend_add_package_from_files(
 
 def backend_list_snapshots() -> dict[str, dict[str, list[datetime.datetime]]]:
     snaps = {}
-    for i in am.aptly_via_api.api_snapshots_list():
-        name = i[1]["Name"]
+    for i in am.aptly_via_api.api_snapshots_list()[1]:
+        name = i["Name"]
         m = re.search(r"(.*)_snapfor_(" + snapre + ")", name)
         if not m:
             continue
@@ -1911,8 +1914,8 @@ def backend_delete_snapshot(environment: str, name: str) -> None:
     _validate_snapshot_name(name)
     snaps = backend_list_snapshots()
     _ = snaps[environment][name]
-    for i in am.aptly_via_api.api_snapshots_list():
-        iname = i[1]["Name"]
+    for i in am.aptly_via_api.api_snapshots_list()[1]:
+        iname = i["Name"]
         m = re.search(r"(.*)_snapfor_(" + snapre + ")", iname)
         if not m:
             continue
@@ -1934,8 +1937,7 @@ def backend_tasks() -> None:
         3: "échec",
     }
     tasks = []
-    for t in am.aptly_via_api.api_tasks():
-        t = t[1]
+    for t in am.aptly_via_api.api_tasks()[1]:
         # Update published snapshot repository filesystem:fs1:stable/trixie
         # The regex says:
         # anything, as long as possible, until a colon (named group "publishtype")

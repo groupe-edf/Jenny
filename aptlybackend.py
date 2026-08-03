@@ -1601,8 +1601,11 @@ def backend_publish(target: str, sources: list[str] = None, asyncpub=False) -> N
             realsnap = "%s-snap-for-%s" % (mname, target)
             renamedsnap = f"{realsnap}-tmpfordrop-{suffix}"
             logger.warning("start snapshot update for %s", s)
-            am.aptly_via_api.api_snapshots_update(realsnap, {"Name": renamedsnap})
-            logger.warning("snapshot update ok for %s", s)
+            try:
+                am.aptly_via_api.api_snapshots_update(realsnap, {"Name": renamedsnap})
+                logger.warning("snapshot update ok for %s", s)
+            except:
+                logger.warning("snapshot update not ok for %s, ignoring", s)
         _, publish = am.aptly_via_api.api_publish_get(prefix, distribution)
         if publish:
             published_components = set(

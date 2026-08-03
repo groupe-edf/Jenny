@@ -166,9 +166,17 @@ class AptlyApiClient:
                 r = call(url, headers=headers, files=files)
 
         try:
-            return (r.status_code, r.json())
+            j = r.json()
         except json.decoder.JSONDecodeError:
-            return (r.status_code, None)
+            j = None
+
+        if r.status_code >= 300:
+            e = HTTPException(f"API call {call} returned status code {r.status_code}")
+            e.status_code = r.status_code
+            e.json = j
+            raise e
+
+        return r.status_code, j
 
     def api_package_show(self, key: str) -> int:
         status_code, ret = self.api_get("packages/" + urllib.parse.quote(key, safe=""))

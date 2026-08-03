@@ -5,8 +5,6 @@ your own backronym), but when we decided to open it to the world we
 noticed that there was already a piece of software in Debian by that
 name. So we switched to Jenny, the sister of Brian.
 
-We haven't finished renaming everything in the code yet.
-
 ## Purpose
 
 Jenny is a tool to manage Debian package repositories for a

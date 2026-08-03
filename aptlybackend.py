@@ -1683,7 +1683,7 @@ def backend_publish(target: str, sources: list[str] = None, asyncpub=False) -> N
                 logger.warning("start snapshot delete for %s", s)
                 am.aptly_via_api.api_snapshots_delete(renamedsnap)
                 logger.warning("snapshot delete ok for %s", s)
-            except ApiException, HTTPException:
+            except (ApiException, HTTPException):
                 logger.warning("snapshot delete not ok for %s", s)
                 # raise
             logger.warning("start snapshot update for %s", s)

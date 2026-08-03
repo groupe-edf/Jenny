@@ -1645,35 +1645,32 @@ def backend_publish(target: str, sources: list[str] = None, asyncpub=False) -> N
                 logger.warning("start publish create for %s", s)
                 am.aptly_via_api.api_publish_create(prefix, spec, asyncpub=asyncpub)
             logger.warning("start publish update for %s", s)
-            status_code = None
-            status_code, _ = am.aptly_via_api.api_publish_update(
-                prefix, distribution, spec, asyncpub=asyncpub
-            )
-            if status_code not in {200, 202}:
+            try:
+                status_code, _ = am.aptly_via_api.api_publish_update(
+                    prefix, distribution, spec, asyncpub=asyncpub
+                )
+            except HTTPException as e:
                 logger.warning(
-                    "publish update not ok for %s, error: %d", s, status_code
+                    "publish update not ok for %s, error: %d", s, e.status_code
                 )
                 if not pub["ignore-errors"]:
-                    raise HTTPException(
-                        "publish update not ok for %s, error: %d" % (s, status_code)
-                    )
+                    raise
             else:
                 logger.warning("publish update ok for %s", s)
         else:
             logger.warning("start publish create for %s", s)
-            status_code, _ = am.aptly_via_api.api_publish_create(
-                prefix, spec, asyncpub=asyncpub
-            )
-            if status_code in {201, 202}:
-                logger.warning("publish create ok for %s", s)
-            else:
+            try:
+                status_code, _ = am.aptly_via_api.api_publish_create(
+                    prefix, spec, asyncpub=asyncpub
+                )
+            except HTTPException as e:
                 logger.warning(
-                    "publish create not ok for %s, error: %d", s, status_code
+                    "publish create not ok for %s, error: %d", s, e.status_code
                 )
                 if not pub["ignore-errors"]:
-                    raise HTTPException(
-                        "publish create not ok for %s, error: %d" % (s, status_code)
-                    )
+                    raise
+            else:
+                logger.warning("publish create ok for %s", s)
         for comp in c["components"]:
             mname = dec2str(c["basename"], c["env"], comp)
             snap = snapnames[mname]

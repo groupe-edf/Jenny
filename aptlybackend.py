@@ -134,7 +134,7 @@ class AptlyApiClient:
         t0 = time.time()
         while time.time() < t0 + 2:
             try:
-                self.api_publish_list()
+                self.api_ready()
                 break
             except requests.exceptions.ConnectionError:
                 time.sleep(0.05)
@@ -177,6 +177,11 @@ class AptlyApiClient:
             raise e
 
         return r.status_code, j
+
+    def api_ready(self) -> int:
+        status_code, ret = self.api_get("ready")
+        logger.debug("api_ready returned %d", status_code)
+        return status_code
 
     def api_package_show(self, key: str) -> int:
         status_code, ret = self.api_get("packages/" + urllib.parse.quote(key, safe=""))
@@ -305,9 +310,10 @@ class AptlyApiClient:
         logger.debug("api_snapshots_update returned %d", status_code)
         return status_code, ret
 
-    def api_snapshots_delete(self, snapshot: str):
+    def api_snapshots_delete(self, snapshot: str, _async=True):
         status_code, ret = self.api_delete(
-            "snapshots" + "/" + urllib.parse.quote(snapshot, safe="")
+            "snapshots" + "/" + urllib.parse.quote(snapshot, safe=""),
+            params={"_async": "true"} if _async else {},
         )
         logger.debug("api_snapshots_delete returned %d", status_code)
         return status_code, ret
@@ -1523,7 +1529,6 @@ def backend_publish_dist(dist: str, asyncpub=False) -> None:
 
 
 def backend_publish(target: str, sources: list[str] = None, asyncpub=False) -> None:
-    logger.warning("backend_publish %s/%s", target, sources)
     _fill_publish_prefixes()
     if target == "all":
         for t in jennyconfig["publishes"]:
@@ -1533,32 +1538,40 @@ def backend_publish(target: str, sources: list[str] = None, asyncpub=False) -> N
     pub = jennyconfig["publishes"][target]
 
     suffix = str(uuid.uuid4())
+    # If sources is empty, launch publication for all dists of target
     if not sources:
         sources = pub["dists"]
     for s in sources:
         source = de2str(s, pub["env"])
         if source not in jennyconfig["dists"]:
+            logger.warning(
+                "%s not allowed to publish for environnement %s", source, target
+            )
             continue
         logger.warning("backend_publish for dist %s", s)
         c = jennyconfig["dists"][source]
         snapnames = {}
+        logger.warning("publish %s for environnement %s", s, target)
+
+        # For each components: create mirror/repo snapshot, then
         for comp in c["components"]:
             mname = dec2str(s, pub["env"], comp)
             snap = "%s_%s_tmpforpublish" % (dec2str(s, pub["env"], comp), suffix)
             snapnames[mname] = snap
-            realsnap = "%s-snap-for-%s" % (mname, target)
             if jennyconfig["dists"][source]["ismirror"]:
                 logger.warning("mirror %s", snap)
                 status_code, ret = am.aptly_via_api.api_mirror_snapshot(mname, snap)
                 if status_code == 400:
                     if "mirror not updated" in ret["error"]:
-                        logger.warning("Need to update mirror %s", mname)
+                        logger.warning("start update of mirror %s", mname)
                         am.aptly_via_api.api_mirror_update(mname)
+                        logger.warning("create snap of mirror %s: %s", mname, snap)
                         am.aptly_via_api.api_mirror_snapshot(mname, snap)
             else:
-                logger.warning("repo %s", snap)
+                logger.warning("create snap of repo %s: %s", mname, snap)
                 print(am.aptly_via_api.api_repos_snapshot(mname, snap)[1])
 
+        # Prepare body request of API publication
         if jennyconfig["publishes"][target]["type"] == "filesystem":
             prefix = "filesystem:%(prefix)s:%(target)s" % {
                 "prefix": jennyconfig["publishes"][target]["publishprefix"],
@@ -1595,23 +1608,13 @@ def backend_publish(target: str, sources: list[str] = None, asyncpub=False) -> N
         spec["Sources"] = sources
         spec["SourceKind"] = "snapshot"
         spec["Snapshots"] = sources
-        for comp in c["components"]:
-            mname = dec2str(c["basename"], c["env"], comp)
-            snap = snapnames[mname]
-            realsnap = "%s-snap-for-%s" % (mname, target)
-            renamedsnap = f"{realsnap}-tmpfordrop-{suffix}"
-            logger.warning("start snapshot update for %s", s)
-            try:
-                am.aptly_via_api.api_snapshots_update(realsnap, {"Name": renamedsnap})
-                logger.warning("snapshot update ok for %s", s)
-            except:
-                logger.warning("snapshot update not ok for %s, ignoring", s)
-        _, publish = am.aptly_via_api.api_publish_get(prefix, distribution)
+        spec["MultiDist"] = True
+        publish = am.aptly_via_api.api_publish_get(prefix, distribution)[1]
         if publish:
             published_components = set(
                 {source["Component"] for source in publish["Sources"]}
             )
-            logger.warning("%s/%s published repo exists", c["env"], distribution)
+            logger.warning("%s/%s published repo exists", prefix, distribution)
             if set(c["components"]) != set(published_components):
                 logger.warning("start replace source components for %s", s)
                 am.aptly_via_api.api_publish_replace_source_components(
@@ -1625,7 +1628,7 @@ def backend_publish(target: str, sources: list[str] = None, asyncpub=False) -> N
             for field in spec.keys():
                 # Signing field is not present in GET /api/publish response
                 # The Sources and Snapshots fields may change with each publication.
-                if field not in ("Signing", "Snapshots", "Sources"):
+                if field not in ("Signing", "Snapshots", "Sources", "MultiDist"):
                     if isinstance(spec[field], list):
                         if set(spec[field]) != set(publish[field]):
                             field_changed.add(field)
@@ -1674,22 +1677,6 @@ def backend_publish(target: str, sources: list[str] = None, asyncpub=False) -> N
                     raise
             else:
                 logger.warning("publish create ok for %s", s)
-        for comp in c["components"]:
-            mname = dec2str(c["basename"], c["env"], comp)
-            snap = snapnames[mname]
-            realsnap = "%s-snap-for-%s" % (mname, target)
-            renamedsnap = f"{realsnap}-tmpfordrop-{suffix}"
-            try:
-                logger.warning("start snapshot delete for %s", s)
-                am.aptly_via_api.api_snapshots_delete(renamedsnap)
-                logger.warning("snapshot delete ok for %s", s)
-            except (ApiException, HTTPException):
-                logger.warning("snapshot delete not ok for %s", s)
-                # raise
-            logger.warning("start snapshot update for %s", s)
-            spec = {"Name": realsnap}
-            am.aptly_via_api.api_snapshots_update(snap, spec)
-            logger.warning("snapshot update ok for %s", s)
 
 
 def backend_fill_distribution_from_source(
@@ -1947,6 +1934,7 @@ def backend_tasks() -> None:
         # then anything, as long as possible, until another colon ("prefix")
         # then anything, as short as possible, until a slash ("publish")
         # then the rest ("dist"), which may include slashes
+        show = False
         if m := re.search(
             "Update published snapshot repository (?P<publishtype>.*):(?P<prefix>.*):(?P<publish>.*?)/(?P<dist>.*)",
             t["Name"],
@@ -1955,6 +1943,7 @@ def backend_tasks() -> None:
             t["prefix"] = m.group("prefix")
             t["publish"] = m.group("publish")
             t["dist"] = m.group("dist")
+            show = True
         elif m := re.search(
             "Publish snapshot repository (?P<publishtype>.*):(?P<prefix>.*):(?P<publish>.*?)/(?P<dist>.*) with components",
             t["Name"],
@@ -1963,11 +1952,13 @@ def backend_tasks() -> None:
             t["prefix"] = m.group("prefix")
             t["publish"] = m.group("publish")
             t["dist"] = m.group("dist")
+            show = True
         if "State" in t and t["State"] in states:
             t["statetext"] = states[t["State"]]
         else:
             t["statetext"] = "inconnue"
-        tasks.append(t)
+        if show:
+            tasks.append(t)
     tasks.reverse()
     return tasks
 

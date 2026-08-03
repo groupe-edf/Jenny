@@ -10,7 +10,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 <div class="m-2">
   <table class="table table-striped">
 
-    {% for env,snapshots in g.snapshots.items() %}
+    {% for env,snapshots in g.session.snapshotsbyenv.items() %}
     <tr>
       <th colspan="3">Environnement {{ env }}</th>
     </tr>

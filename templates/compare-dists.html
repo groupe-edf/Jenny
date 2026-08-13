@@ -34,7 +34,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
     {% if not g.distributions[diffdata.rightdist].isreadonly and not rightsnap %}
     {% set ns.rightok = true %}
     {% endif %}
-    
+
     <table class="table table-striped">
       <tr><th class="text-center">{{ leftenv }}{% if leftsnap %}[{{leftsnap}}]{% endif %}</th><th class="text-center"><span class="h3">{{d}}</span></th><th class="text-center">{{ rightenv }}{% if rightsnap %}[{{rightsnap}}]{% endif %}</th></tr>
       <!--
@@ -100,7 +100,12 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 	  <input type="submit" class="btn btn-primary disablable" name="migrate-left" value="⇐ Vers {{leftenv}}">
 	  {% endif %}
 	</td>
-	<th class="text-center">Migrer les paquets sélectionnés</th>
+	<th class="text-center">Migrer les paquets sélectionnés
+	  <div class="form-check form-check-inline form-switch">
+	    <label class="form-check-label" for="input-auto-snap" checked>Snapshot avant migration</label>
+	    <input class="form-check-input" type="checkbox" id="input-auto-snap" name="autosnap" class="m-2" checked />
+	  </div>
+	</th>
 	<td>
 	  {% if ns.rightok %}
 	  <input type="submit" class="btn btn-primary disablable" name="migrate-right" value="Vers {{rightenv}} ⇒">
@@ -119,5 +124,5 @@ SPDX-License-Identifier: AGPL-3.0-or-later
       {{ distformbuttons(false,g=g) }}
     </table>
   </form>
-</div>    
+</div>
 {% endblock %}

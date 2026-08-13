@@ -45,8 +45,9 @@ SPDX-License-Identifier: AGPL-3.0-or-later
       <input type="hidden" name="migratesrcpkg/{{dist}}/{{p}}" value="1"><br/>
       {% endfor %}
       {% endfor %}
+      <input type="hidden" name="autosnap" {% if autosnap %}value="on"{% else %}value="off"{% endif %}>
       <input type="submit" class="btn btn-primary" value="Confirmer">
-    </form>      
+    </form>
   </div>
-</div>    
+</div>
 {% endblock %}

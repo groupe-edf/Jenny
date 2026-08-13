@@ -32,8 +32,9 @@ SPDX-License-Identifier: AGPL-3.0-or-later
       {% for p in srcpackages %}
       <input type="hidden" name="srcpkg/{{p[0]}}/{{p[1]}}" value="1">
       {% endfor %}
+      <input type="hidden" name="autosnap" {% if autosnap %}value="on"{% else %}value="off"{% endif %}>
       <input type="submit" class="btn btn-danger" value="Confirmer">
-    </form>      
+    </form>
   </div>
-</div>    
+</div>
 {% endblock %}

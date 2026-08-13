@@ -22,6 +22,7 @@ import os
 import urllib
 from functools import cmp_to_key
 import apt_pkg
+import datetime
 
 from flask import Flask, render_template, redirect, url_for, g, request, session
 import werkzeug
@@ -540,6 +541,10 @@ def migratediff():
                     srcpkgs.append((dist, pd))
                 continue
 
+    try:
+        autosnap = request.form["autosnap"] == "on"
+    except:
+        autosnap = False
     session["leftenv"] = leftenv
     session["rightenv"] = rightenv
     session["leftsnap"] = leftsnap
@@ -561,6 +566,7 @@ def migratediff():
         removedversions,
         migratedpackages,
         sorteddiffs,
+        autosnap,
     )
 
 
@@ -582,6 +588,7 @@ def webapp_pre_migrate_packages():
         removedversions,
         migratedpackages,
         sorteddiffs,
+        autosnap,
     ) = migratediff()
 
     return render_template(
@@ -600,6 +607,7 @@ def webapp_pre_migrate_packages():
         srcpkgsperdist=srcpkgsperdist,
         dists=dists,
         diffs=sorteddiffs,
+        autosnap=autosnap,
     )
 
 
@@ -676,6 +684,11 @@ def removediff():
         if d := parse_dist(p, prefix="removedist/"):
             dists.append(urllib.parse.quote(d, safe=""))
 
+    try:
+        autosnap = request.form["autosnap"] == "on"
+    except:
+        autosnap = False
+
     removed = {}
     removedversions = 0
     for d in srcperdist:
@@ -697,11 +710,11 @@ def removediff():
             )
             removedversions += len(removed[d][p])
 
-    return srcpkgs, dists, env, srcperdist, removed, removedversions
+    return srcpkgs, dists, env, srcperdist, removed, removedversions, autosnap
 
 
 def webapp_pre_remove_packages():
-    srcpkgs, dists, env, _, removed, removedversions = removediff()
+    srcpkgs, dists, env, _, removed, removedversions, autosnap = removediff()
     return render_template(
         "pre-remove-packages.html",
         environment=env,
@@ -710,6 +723,7 @@ def webapp_pre_remove_packages():
         removedpackages=len(srcpkgs),
         removedversions=removedversions,
         dists=dists,
+        autosnap=autosnap,
     )
 
 
@@ -731,7 +745,15 @@ def webapp_migrate_packages():
         removedversions,
         migratedpackages,
         sorteddiffs,
+        autosnap,
     ) = migratediff()
+
+    if autosnap:
+        ts = re.sub("[^0-9]", "", datetime.datetime.now().isoformat())[:14]
+        autosnapname = f"autosnap_before_migrate_packages_{ts}"
+        if g.current_user:
+            autosnapname += f"_{g.current_user}"
+        backend_create_snapshot(toenv, autosnapname)
 
     migrated = backend_migrate_packages(
         fromenv=fromenv,
@@ -791,7 +813,14 @@ def webapp_migrate_packages():
 
 @webapp.route("/remove-packages", methods=["POST"])
 def webapp_remove_packages():
-    srcpkgs, dists, env, srcperdist, removed, removedversions = removediff()
+    srcpkgs, dists, env, srcperdist, removed, removedversions, autosnap = removediff()
+
+    if autosnap:
+        ts = re.sub("[^0-9]", "", datetime.datetime.now().isoformat())[:14]
+        autosnapname = f"autosnap_before_remove_packages_{ts}"
+        if g.current_user:
+            autosnapname += f"_{g.current_user}"
+        backend_create_snapshot(env, autosnapname)
 
     for d in srcperdist:
         backend_remove_packages(

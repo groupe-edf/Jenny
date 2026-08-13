@@ -750,7 +750,7 @@ def webapp_migrate_packages():
 
     if autosnap:
         ts = re.sub("[^0-9]", "", datetime.datetime.now().isoformat())[:14]
-        autosnapname = f"autosnap_before_migrate_{ts}"
+        autosnapname = f"autosnap_before_migrate_packages_{ts}"
         if g.current_user:
             autosnapname += f"_{g.current_user}"
         backend_create_snapshot(toenv, autosnapname)
@@ -817,7 +817,7 @@ def webapp_remove_packages():
 
     if autosnap:
         ts = re.sub("[^0-9]", "", datetime.datetime.now().isoformat())[:14]
-        autosnapname = f"autosnap_before_remove_{ts}"
+        autosnapname = f"autosnap_before_remove_packages_{ts}"
         if g.current_user:
             autosnapname += f"_{g.current_user}"
         backend_create_snapshot(env, autosnapname)

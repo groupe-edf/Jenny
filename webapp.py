@@ -540,6 +540,12 @@ def migratediff():
                     srcpkgs.append((dist, pd))
                 continue
 
+    try:
+        autosnap = request.form["autosnap"] == "on"
+    except:
+        autosnap = False
+    logger.warning(request.form)
+    logger.warning(autosnap)
     session["leftenv"] = leftenv
     session["rightenv"] = rightenv
     session["leftsnap"] = leftsnap
@@ -561,6 +567,7 @@ def migratediff():
         removedversions,
         migratedpackages,
         sorteddiffs,
+        autosnap,
     )
 
 
@@ -582,6 +589,7 @@ def webapp_pre_migrate_packages():
         removedversions,
         migratedpackages,
         sorteddiffs,
+        autosnap,
     ) = migratediff()
 
     return render_template(
@@ -600,6 +608,7 @@ def webapp_pre_migrate_packages():
         srcpkgsperdist=srcpkgsperdist,
         dists=dists,
         diffs=sorteddiffs,
+        autosnap=autosnap,
     )
 
 
@@ -731,7 +740,11 @@ def webapp_migrate_packages():
         removedversions,
         migratedpackages,
         sorteddiffs,
+        autosnap,
     ) = migratediff()
+
+    if autosnap:
+        pass
 
     migrated = backend_migrate_packages(
         fromenv=fromenv,

@@ -22,6 +22,7 @@ import os
 import urllib
 from functools import cmp_to_key
 import apt_pkg
+import datetime
 
 from flask import Flask, render_template, redirect, url_for, g, request, session
 import werkzeug
@@ -544,8 +545,6 @@ def migratediff():
         autosnap = request.form["autosnap"] == "on"
     except:
         autosnap = False
-    logger.warning(request.form)
-    logger.warning(autosnap)
     session["leftenv"] = leftenv
     session["rightenv"] = rightenv
     session["leftsnap"] = leftsnap
@@ -744,7 +743,11 @@ def webapp_migrate_packages():
     ) = migratediff()
 
     if autosnap:
-        pass
+        ts = re.sub("[^0-9]", "", datetime.datetime.now().isoformat())[:14]
+        autosnapname = f"autosnap_migrate_{ts}"
+        if g.current_user:
+            autosnapname += f"_{g.current_user}"
+        backend_create_snapshot(toenv, autosnapname)
 
     migrated = backend_migrate_packages(
         fromenv=fromenv,

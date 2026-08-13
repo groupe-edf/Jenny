@@ -67,7 +67,12 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 	</th>
       </tr>
       <tr>
-	<th class="text-center">Supprimer les paquets sélectionnés</th>
+	<th class="text-center">Supprimer les paquets sélectionnés
+	  <div class="form-check form-check-inline form-switch">
+	    <label class="form-check-label" for="input-auto-snap" checked>Snapshot avant suppression</label>
+	    <input class="form-check-input" type="checkbox" id="input-auto-snap" name="autosnap" class="m-2" checked />
+	  </div>
+	</th>
 	<td>
 	  <input type="submit" class="btn btn-primary disablable" name="remove" value="Supprimer">
 	</td>
@@ -110,7 +115,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
       <button type="submit" class="btn btn-warning" name="expert-migrate">Migrer</button>
     </div>
   </div>
-  
+
   </form>
 
 </div>

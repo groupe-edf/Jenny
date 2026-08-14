@@ -1089,10 +1089,11 @@ def backend_diff_dists(
         onlyright += diffdata["onlyright"]
         diffver += diffdata["diffver"]
         key2source |= diffdata["key2source"]
-        if not leftsnap:
-            am.aptly_via_api.api_snapshots_delete(sn1)
-        if not rightsnap:
-            am.aptly_via_api.api_snapshots_delete(sn2)
+        # Workaround for https://github.com/aptly-dev/aptly/issues/1619
+        # if not leftsnap:
+        #     am.aptly_via_api.api_snapshots_delete(sn1)
+        # if not rightsnap:
+        #     am.aptly_via_api.api_snapshots_delete(sn2)
 
     res = {
         "onlyleft": onlyleft,
@@ -1276,6 +1277,10 @@ def backend_migrate_packages(
 
     for dist in sorted(list(impacted_dists)):
         backend_publish_dist(dist, asyncpub=asyncpub)
+
+    # Workaround for https://github.com/aptly-dev/aptly/issues/1619
+    backend_drop_old_tmp_snapshots()
+
     return migrated
 
 
@@ -1794,7 +1799,7 @@ def backend_drop_old_tmp_snapshots() -> None:
         createdat = dateutil.parser.isoparse(i["CreatedAt"])
         if not createdat < datetime.datetime.now(
             datetime.timezone.utc
-        ) - datetime.timedelta(days=7):
+        ) - datetime.timedelta(days=1):
             continue
         logger.warning("Deleting snapshot %s", name)
         am.aptly_via_api.api_snapshots_delete(name)

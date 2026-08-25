@@ -1565,13 +1565,17 @@ def backend_publish(target: str, sources: list[str] = None, asyncpub=False) -> N
             snapnames[mname] = snap
             if jennyconfig["dists"][source]["ismirror"]:
                 logger.warning("mirror %s", snap)
-                status_code, ret = am.aptly_via_api.api_mirror_snapshot(mname, snap)
-                if status_code == 400:
-                    if "mirror not updated" in ret["error"]:
-                        logger.warning("start update of mirror %s", mname)
-                        am.aptly_via_api.api_mirror_update(mname)
-                        logger.warning("create snap of mirror %s: %s", mname, snap)
-                        am.aptly_via_api.api_mirror_snapshot(mname, snap)
+                try:
+                    status_code, ret = am.aptly_via_api.api_mirror_snapshot(mname, snap)
+                except HTTPException as e:
+                    if e.status_code == 400:
+                        if "mirror not updated" in e.json["error"]:
+                            logger.warning("start update of mirror %s", mname)
+                            am.aptly_via_api.api_mirror_update(mname)
+                            logger.warning("create snap of mirror %s: %s", mname, snap)
+                            am.aptly_via_api.api_mirror_snapshot(mname, snap)
+                    else:
+                        raise
             else:
                 logger.warning("create snap of repo %s: %s", mname, snap)
                 print(am.aptly_via_api.api_repos_snapshot(mname, snap)[1])
@@ -1614,7 +1618,10 @@ def backend_publish(target: str, sources: list[str] = None, asyncpub=False) -> N
         spec["SourceKind"] = "snapshot"
         spec["Snapshots"] = sources
         spec["MultiDist"] = True
-        publish = am.aptly_via_api.api_publish_get(prefix, distribution)[1]
+        try:
+            publish = am.aptly_via_api.api_publish_get(prefix, distribution)[1]
+        except:
+            publish = None
         if publish:
             published_components = set(
                 {source["Component"] for source in publish["Sources"]}

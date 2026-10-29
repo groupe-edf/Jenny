@@ -687,7 +687,7 @@ def _create_aptly_repos(asyncpub=False) -> None:
                     "Name": mname,
                     "ArchiveURL": c["upstream"],
                     "Distribution": c["suite"],
-                    "Components": [comp],
+                    "Components": [comp] if c["isflat"] == False else [],
                     "Architectures": c["binary-architectures"],
                     "DownloadSources": c["has-sources"],
                     "DownloadUdebs": c["udebs"] if "udebs" in c else False,

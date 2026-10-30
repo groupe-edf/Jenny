@@ -71,8 +71,6 @@ def load_config() -> None:
                     else raw["dists"][d]["upstream"] + "/"
                 )
                 dr["ismirror"] = True
-                dr["isflat"] = True if raw["dists"][d]["suite"].endswith("/") else False
-                dr["components"] = ["flat"] if raw["dists"][d]["suite"].endswith("/") else raw["dists"][d]["components"]
                 dr["isaggregate"] = False
                 dr["isreadonly"] = True
             elif (
@@ -90,6 +88,7 @@ def load_config() -> None:
                 dr["isreadonly"] = False
             dr["name"] = dname
             dr["architectures"] = dr["architectures"]
+            dr["components"] = ["flat"] if not raw["dists"][d]["components"] else raw["dists"][d]["components"]
             dr["binary-architectures"] = [
                 i for i in dr["architectures"] if i != "source"
             ]

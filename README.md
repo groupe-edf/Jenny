@@ -232,7 +232,7 @@ structures are:
   - `origin`, `label` and `description`: currently unused;
   - `architectures`: a list of architectures to handle
     (eg. `[source, amd64]`);
-  - `components`: a list of components to handle (eg. `[main, contrib, non-free, non-free-firmware]`); The “Components” field is not required when the mirror is of the “flat” type
+  - `components`: a list of components to handle (eg. `[main, contrib, non-free, non-free-firmware]`); The “components” field must be [] when the repository is of the “flat” type
   - `udebs`: a boolean, whether to handle udebs for the installer in
     the distribution;
   - `upstream` and `suite`: for mirrors, the URL of the external

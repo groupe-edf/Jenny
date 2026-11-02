@@ -720,6 +720,15 @@ def _create_aptly_repos(asyncpub=False) -> None:
                                 )
                                 need_update = True
                                 break
+                        # With "flat" miror, aptly show "Components" as null, but we want to consider it as an empty list
+                        elif field == "Components" and not spec["Components"]:
+                            if current_spec["Components"]:
+                                logger.warning(
+                                    "Components field in mirror configuration %s changed",
+                                    mname,
+                                )
+                                need_update = True
+                                break
                         else:
                             if type(field) is list:
                                 current_spec[field] = set(current_spec[field])

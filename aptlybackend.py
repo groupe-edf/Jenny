@@ -687,7 +687,7 @@ def _create_aptly_repos(asyncpub=False) -> None:
                     "Name": mname,
                     "ArchiveURL": c["upstream"],
                     "Distribution": c["suite"],
-                    "Components": [comp],
+                    "Components": [comp] if comp != "flat" else [],
                     "Architectures": c["binary-architectures"],
                     "DownloadSources": c["has-sources"],
                     "DownloadUdebs": c["udebs"] if "udebs" in c else False,
@@ -716,6 +716,15 @@ def _create_aptly_repos(asyncpub=False) -> None:
                             if spec["ArchiveURL"] != current_spec["ArchiveRoot"]:
                                 logger.warning(
                                     "ArchiveURL field in mirror configuration %s changed",
+                                    mname,
+                                )
+                                need_update = True
+                                break
+                        # With "flat" miror, aptly show "Components" as null, but we want to consider it as an empty list
+                        elif field == "Components" and not spec["Components"]:
+                            if current_spec["Components"]:
+                                logger.warning(
+                                    "Components field in mirror configuration %s changed",
                                     mname,
                                 )
                                 need_update = True
@@ -1710,7 +1719,7 @@ def backend_fill_distribution_from_source(
                 "Name": mname,
                 "ArchiveURL": url,
                 "Distribution": suite,
-                "Components": [comp],
+                "Components": [comp] if comp != "flat" else [],
                 "Architectures": c["binary-architectures"],
                 "DownloadSources": c["has-sources"],
                 "DownloadUdebs": c["udebs"] if "udebs" in c else False,

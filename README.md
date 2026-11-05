@@ -232,11 +232,12 @@ structures are:
   - `origin`, `label` and `description`: currently unused;
   - `architectures`: a list of architectures to handle
     (eg. `[source, amd64]`);
-  - `components`: a list of components to handle (eg. `[main, contrib, non-free, non-free-firmware]`);
+  - `components`: a list of components to handle (eg. `[main, contrib, non-free, non-free-firmware]`); The “components” field must be [] when the repository is of the “flat” type
   - `udebs`: a boolean, whether to handle udebs for the installer in
     the distribution;
   - `upstream` and `suite`: for mirrors, the URL of the external
     repository and the suite within that repository to be replicated;
+    If the “suite” field ends with “/”, Jenny considers it to be a “flat” mirror with no components
   - `verifyrelease`: for mirrors, a `|`-separated list of GPG key ids
     used to validate the signature on the external repository;
   - `stages`: a list of stages that this distribution belongs to.

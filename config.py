@@ -88,6 +88,7 @@ def load_config() -> None:
                 dr["isreadonly"] = False
             dr["name"] = dname
             dr["architectures"] = dr["architectures"]
+            dr["components"] = ["flat"] if not raw["dists"][d]["components"] else raw["dists"][d]["components"]
             dr["binary-architectures"] = [
                 i for i in dr["architectures"] if i != "source"
             ]

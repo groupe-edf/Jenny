@@ -42,6 +42,7 @@ from backend import (
     backend_fill_distribution_from_source,
     backend_search_package,
     backend_drop_old_tmp_snapshots,
+    backend_drop_old_autosnapshots,
     backend_drop_upload_dirs,
     backend_add_package_from_files,
     backend_migrate_all_packages,
@@ -246,6 +247,7 @@ def create_web_user(email: str, password: str) -> None:
 @jennycli
 def cleanup() -> None:
     backend_drop_old_tmp_snapshots()
+    backend_drop_old_autosnapshots()
     backend_drop_upload_dirs()
     backend_cleanup()
 

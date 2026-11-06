@@ -1821,7 +1821,7 @@ def backend_drop_old_tmp_snapshots() -> None:
         am.aptly_via_api.api_snapshots_delete(name)
 
 def backend_drop_old_autosnapshots() -> None:
-    for i in am.aptly_via_api.api_snapshots_list():
+    for i in am.aptly_via_api.api_snapshots_list()[1]:
         name = i["Name"]
         if not re.search("autosnap", name):
             continue

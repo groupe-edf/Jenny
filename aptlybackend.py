@@ -1820,6 +1820,22 @@ def backend_drop_old_tmp_snapshots() -> None:
         logger.warning("Deleting snapshot %s", name)
         am.aptly_via_api.api_snapshots_delete(name)
 
+def backend_drop_old_autosnapshots() -> None:
+    for i in am.aptly_via_api.api_snapshots_list()[1]:
+        name = i["Name"]
+        if not re.search("autosnap", name):
+            continue
+        # There is also a datetime.datetime.fromisoformat() method,
+        # but it only works with versions of Python more recent than
+        # we currently have
+        createdat = dateutil.parser.isoparse(i["CreatedAt"])
+        if not createdat < datetime.datetime.now(
+            datetime.timezone.utc
+        ) - datetime.timedelta(days=30):
+            continue
+        logger.warning("Deleting snapshot %s", name)
+        am.aptly_via_api.api_snapshots_delete(name)
+
 
 def backend_drop_all_publish() -> None:
     for i in am.aptly_via_api.api_publish_list()[1]:
